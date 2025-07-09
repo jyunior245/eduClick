@@ -4,6 +4,9 @@
 
 ---
 
+# 💡 Apresentação
+O EduClick foi desenvolvido para atender a necessidade de professores autônomos e alunos que buscam praticidade na marcação de aulas particulares. O sistema permite que professores gerenciem suas aulas, horários e perfil, enquanto alunos podem visualizar perfis públicos e reservar horários disponíveis.
+
 ## 🧩 Funcionalidades
 
 ### Funcionalidades Gerais
@@ -97,7 +100,7 @@ npm install
 ```bash
 npm start
 ```
-- 💡 Esse comando utiliza o pacote concurrently para rodar ambos os servidores.
+- Esse comando utiliza o pacote concurrently para rodar ambos os servidores.
 
 - Servidores iniciados em:
 
@@ -109,9 +112,9 @@ Após a execução, acesse no navegador:
 
 🔗 http://localhost:1234
 
-- Você poderá:
+Você poderá:
 
-Realizar cadastro e login.
-Acessar seu painel de controle.
-Criar ou reservar aulas particulares.
+- Realizar cadastro e login.
+- Acessar seu painel de controle.
+- Criar ou reservar aulas particulares.
 
