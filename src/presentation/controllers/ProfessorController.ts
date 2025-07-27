@@ -77,7 +77,7 @@ export class ProfessorController {
       if (!professorId) return res.status(401).json({ error: "Não autenticado" });
       
       // Adicionar todos os campos possíveis do professor
-      const { nome, email, descricao, conteudosDominio, fotoPerfil, telefone, formacao, experiencia } = req.body;
+      const { nome, email, descricao, conteudosDominio, fotoPerfil, telefone, formacao, experiencia, especialidade, bio, observacoes } = req.body;
       
       const professor = await professorService.atualizarPerfil(professorId, {
         nome,
@@ -87,7 +87,10 @@ export class ProfessorController {
         fotoPerfil,
         telefone,
         formacao,
-        experiencia
+        experiencia,
+        especialidade,
+        bio,
+        observacoes
       });
       
       res.json({

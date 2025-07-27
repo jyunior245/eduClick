@@ -54,6 +54,10 @@ export class AuthController {
         email: usuario.email,
         tipo: tipo
       };
+      // Compatibilidade: se for professor, setar também req.session.professorId
+      if (tipo === 'PROFESSOR') {
+        req.session.professorId = usuario.id;
+      }
       
       console.log('Sessão após login:', (req.session as any).usuario);
       res.status(200).json((req.session as any).usuario);
