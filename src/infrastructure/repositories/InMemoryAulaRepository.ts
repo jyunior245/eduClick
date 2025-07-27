@@ -32,4 +32,27 @@ export class InMemoryAulaRepository implements IRepository<Aula> {
   async buscarPorProfessor(professorId: string): Promise<Aula[]> {
     return this.aulas.filter(a => a.professorId === professorId);
   }
+
+  // Método utilitário para corrigir professorId das aulas antigas
+  corrigirProfessorIds(linkUnicoParaId: Record<string, string>) {
+    this.aulas = this.aulas.map(aula => {
+      if (linkUnicoParaId[aula.professorId]) {
+        // Cria uma nova instância de Aula com o professorId corrigido
+        return new Aula(
+          aula.id,
+          linkUnicoParaId[aula.professorId],
+          aula.titulo,
+          aula.conteudo,
+          aula.valor,
+          aula.duracao,
+          aula.dataHora,
+          aula.observacoes,
+          aula.maxAlunos,
+          aula.reservas,
+          aula.status
+        );
+      }
+      return aula;
+    });
+  }
 } 
