@@ -1,6 +1,9 @@
 export interface ReservaAula {
   nome: string;
   telefone: string;
+  email: string;
+  status?: 'agendado' | 'cancelado';
+  pagamentoEfetivado?: boolean;
 }
 
 export class Aula {
@@ -15,7 +18,7 @@ export class Aula {
     public observacoes?: string,
     public maxAlunos: number = 1,
     public readonly reservas: ReservaAula[] = [],
-    public status: 'disponivel' | 'lotada' | 'cancelada' = 'disponivel'
+    public status: 'disponivel' | 'lotada' | 'cancelada' | 'reagendada' = 'disponivel'
   ) {}
 
   get estaDisponivel(): boolean {
@@ -39,10 +42,10 @@ export class Aula {
     return `${minutos}min`;
   }
 
-  reservarPublico(nome: string, telefone: string): boolean {
+  reservarPublico(nome: string, telefone: string, email: string): boolean {
     if (!this.estaDisponivel) return false;
     if (this.reservas.find(r => r.nome === nome && r.telefone === telefone)) return false;
-    this.reservas.push({ nome, telefone });
+    this.reservas.push({ nome, telefone, email, status: 'agendado', pagamentoEfetivado: true });
     if (this.reservas.length >= this.maxAlunos) {
       this.status = 'lotada';
     }
@@ -50,9 +53,10 @@ export class Aula {
   }
 
   cancelarReservaPublico(nome: string, telefone: string): boolean {
-    const idx = this.reservas.findIndex(r => r.nome === nome && r.telefone === telefone);
-    if (idx > -1) {
-      this.reservas.splice(idx, 1);
+    const reserva = this.reservas.find(r => r.nome === nome && r.telefone === telefone);
+    if (reserva) {
+      reserva.status = 'cancelado';
+      reserva.pagamentoEfetivado = true;
       if (this.status === 'lotada') {
         this.status = 'disponivel';
       }

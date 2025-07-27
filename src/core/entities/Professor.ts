@@ -12,7 +12,10 @@ export class Professor extends Usuario {
     public linkUnico?: string, // link único para alunos acessarem
     public telefone?: string,
     public formacao?: string,
-    public experiencia?: string
+    public experiencia?: string,
+    public especialidade?: string,
+    public bio?: string,
+    public observacoes?: string
   ) {
     super(id, nome, email, senha);
   }
