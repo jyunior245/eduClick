@@ -8,7 +8,9 @@ import { renderEditarPerfilProfessorPage } from './pages/EditarPerfilProfessorPa
 import { logoutProfessor, getPerfilProfessor } from './services/api';
 import { renderHomePage } from './pages/HomePage';
 
-console.log('EduClick - Cliente iniciado');
+import { logger } from './utils/logger';
+
+logger.info('EduClick - Cliente iniciado');
 
 function logout() {
   logoutProfessor().finally(() => window.location.href = '/');
