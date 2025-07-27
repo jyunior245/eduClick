@@ -7,17 +7,19 @@ import ProfessorRouter from '../presentation/routers/ProfessorRouter';
 import ProfessorPublicoRouter from '../presentation/routers/ProfessorPublicoRouter';
 import AulaRouter from '../presentation/routers/AulaRouter';
 import AuthRouter from '../presentation/routers/AuthRouter';
+import { professorRepository, aulaRepository } from '../infrastructure/repositories/singletons';
 
 const MemoryStore = require('express-session').MemoryStore;
 
 const app = express();
 const port = 3000;
 
+app.use(express.json()); // Middleware para processar JSON
+
+// Se o frontend está rodando em 1234, mantenha o CORS para 1234, mas garanta que o frontend faça requisições para 3000
 app.use(cors({
-  origin: 'http://localhost:1234',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  origin: 'http://localhost:1234', // frontend
+  credentials: true
 }));
 
 app.use(bodyParser.json());
@@ -29,8 +31,24 @@ app.use(session({
   resave: false,
   saveUninitialized: true,
   store: new MemoryStore(),
+  // Voltar para configuração compatível com localhost
   cookie: { secure: false, sameSite: 'lax' }
 }));
+
+// Middleware de log de sessão e cookie
+app.use((req, res, next) => {
+  console.log('[Sessão] Cookie recebido:', req.headers.cookie, 'Sessão:', req.session);
+  next();
+});
+
+// Log global para todas as requisições recebidas
+app.use((req, res, next) => {
+  console.log('[GLOBAL LOG]', req.method, req.originalUrl);
+  next();
+});
+
+// Remover o middleware de log detalhado que lê manualmente o body da requisição
+// Manter apenas express.json() e o log global simples
 
 // Servir arquivos estáticos primeiro
 app.use('/static', express.static(path.join(__dirname, '../../static')));
@@ -39,7 +57,48 @@ app.use('/static', express.static(path.join(__dirname, '../../static')));
 app.use('/api/professores', ProfessorRouter);
 app.use('/api/professor-publico', ProfessorPublicoRouter);
 app.use('/api/aulas', AulaRouter);
+app.use('/aulas', AulaRouter);
 app.use('/api/auth', AuthRouter);
+
+// Endpoint de manutenção para corrigir professorIds das aulas antigas
+app.post('/api/admin/corrigir-professor-ids', async (req, res) => {
+  const professores = await professorRepository.listarTodos();
+  const linkUnicoParaId: Record<string, string> = {};
+  professores.forEach(p => {
+    if (p.linkUnico) linkUnicoParaId[p.linkUnico] = p.id;
+  });
+  const aulasAntes = await aulaRepository.listarTodos();
+  aulaRepository.corrigirProfessorIds(linkUnicoParaId);
+  const aulasDepois = await aulaRepository.listarTodos();
+  const alteradas = aulasDepois.filter((a, i) => a.professorId !== aulasAntes[i]?.professorId);
+  res.json({
+    totalAulas: aulasDepois.length,
+    alteradas: alteradas.length,
+    detalhes: alteradas.map(a => ({ id: a.id, professorId: a.professorId }))
+  });
+});
+
+// Endpoint de diagnóstico para listar todas as aulas
+app.get('/api/admin/listar-aulas', async (req, res) => {
+  const aulas = await aulaRepository.listarTodos();
+  // Log detalhado para depuração
+  console.log('--- LISTAGEM DE TODAS AS AULAS ---');
+  aulas.forEach(a => {
+    console.log({
+      id: a.id,
+      professorId: a.professorId,
+      titulo: a.titulo,
+      reservas: a.reservas
+    });
+  });
+  console.log('-----------------------------------');
+  res.json(aulas.map(a => ({
+    id: a.id,
+    professorId: a.professorId,
+    titulo: a.titulo,
+    reservas: a.reservas
+  })));
+});
 
 // Rota de teste simples
 app.get('/api/test', (req, res) => {
