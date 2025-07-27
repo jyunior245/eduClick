@@ -1,46 +1,41 @@
-import { loginProfessor } from '../services/api';
+import { LoginTemplate } from '../templates/LoginTemplate';
+import { LoginService } from '../services/LoginService';
 import { mostrarToast } from '../components/Toast';
-import { renderHeader } from '../components/Header';
-import { renderFooter } from '../components/Footer';
+import { LoginFormData } from '../types';
 
-export function renderLoginPage(root: HTMLElement) {
-  root.innerHTML = `
-    <div class="d-flex align-items-center justify-content-center min-vh-100 bg-light">
-      <div class="card p-5 shadow-lg border-0 text-center" style="max-width: 370px; width: 100%; border-radius: 18px;">
-        <h2 class="mb-2" style="font-weight: 700;">Bem-vindo ao EduClick</h2>
-        <p class="mb-4 text-muted" style="font-size: 1rem;">Sistema de gerenciamento educacional e agendamento de aulas</p>
-        <form id="loginForm">
-          <div class="mb-3 text-start">
-            <input type="email" class="form-control" name="email" placeholder="Email" required />
-          </div>
-          <div class="mb-3 text-start">
-            <input type="password" class="form-control" name="senha" placeholder="Senha" required />
-          </div>
-          <button type="submit" class="btn btn-primary w-100 mb-2">Entrar</button>
-        </form>
-        <div class="mt-2">
-          <a href="/cadastro" style="font-size: 0.97rem;">Não tem conta? Cadastre-se</a>
-        </div>
-      </div>
-    </div>
-  `;
-  const form = document.getElementById('loginForm');
+export async function renderLoginPage(root: HTMLElement): Promise<void> {
+  root.innerHTML = LoginTemplate.render();
+  setupLoginHandler();
+}
+
+function setupLoginHandler() {
+  const form = document.getElementById('form-login') as HTMLFormElement;
   if (form) {
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const formData = new FormData(form as HTMLFormElement);
-      const email = formData.get('email') as string;
-      const senha = formData.get('senha') as string;
-      try {
-        const response = await loginProfessor(email, senha);
-        if (response.ok) {
-          window.location.href = '/dashboard';
-        } else {
-          mostrarToast('Erro no login. Verifique suas credenciais.', 'danger');
-        }
-      } catch (error) {
-        mostrarToast('Erro ao conectar com o servidor.', 'danger');
-      }
-    });
+    form.onsubmit = handleLoginSubmit;
+  }
+  (window as any).handleLoginSubmit = handleLoginSubmit;
+}
+
+async function handleLoginSubmit(event: Event) {
+  event.preventDefault();
+  const form = event.target as HTMLFormElement;
+  const formData: LoginFormData = {
+    email: (form.email as HTMLInputElement).value,
+    senha: (form.senha as HTMLInputElement).value
+  };
+
+  const validation = LoginService.validate(formData);
+  if (!validation.isValid) {
+    validation.errors.forEach(e => mostrarToast(e, 'danger'));
+    return;
+  }
+
+  const result = await LoginService.login(formData);
+  if (result.success) {
+    setTimeout(() => {
+      window.location.href = '/dashboard';
+    }, 1200);
+  } else {
+    mostrarToast(result.error || 'Erro no login', 'danger');
   }
 } 

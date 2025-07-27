@@ -1,66 +1,45 @@
-import { agendarComProfessor, getInfoProfessor } from '../services/api';
+import { AgendamentoTemplate } from '../templates/AgendamentoTemplate';
+import { AgendamentoService, AgendamentoFormData } from '../services/AgendamentoService'
 import { mostrarToast } from '../components/Toast';
-import { renderHeader } from '../components/Header';
-import { renderFooter } from '../components/Footer';
 
-export function renderAgendamentoPage(root: HTMLElement, professorId: string) {
-  root.innerHTML = `
-    ${renderHeader()}
-    <main class="container my-5">
-      <div class="agendamento-publico-container">
-        <h2>Agendar com o Professor</h2>
-        <div id="info-professor"></div>
-        <div id="horarios-disponiveis"></div>
-        <h3>Reservar Horário</h3>
-        <form id="formAgendar">
-          <input type="text" name="alunoNome" placeholder="Seu nome" required />
-          <input type="text" name="alunoTelefone" placeholder="Seu telefone" required />
-          <input type="datetime-local" name="dataHora" required />
-          <button type="submit">Reservar</button>
-        </form>
-        <p><a href="/">Voltar ao início</a></p>
-      </div>
-    </main>
-    ${renderFooter()}
-  `;
-  carregarInfoProfessor(professorId);
-  // (horários disponíveis pode ser implementado depois)
-  const form = document.getElementById('formAgendar');
-  if (form) {
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const formData = new FormData(form as HTMLFormElement);
-      const alunoNome = formData.get('alunoNome') as string;
-      const alunoTelefone = formData.get('alunoTelefone') as string;
-      const dataHora = formData.get('dataHora') as string;
-      try {
-        const response = await agendarComProfessor(professorId, alunoNome, alunoTelefone, dataHora);
-        if (response.ok) {
-          mostrarToast('Agendamento realizado com sucesso!', 'success');
-          (form as HTMLFormElement).reset();
-        } else {
-          const errorData = await response.json();
-          mostrarToast(`Erro ao agendar: ${errorData.error}`, 'danger');
-        }
-      } catch (error) {
-        mostrarToast('Erro ao conectar com o servidor.', 'danger');
-      }
-    });
+export async function renderAgendamentoPage(root: HTMLElement, professorId: string): Promise<void> {
+  try {
+    const professor = await AgendamentoService.carregarProfessor(professorId);
+    root.innerHTML = AgendamentoTemplate.render({ professor });
+    setupAgendamentoHandler(professorId);
+  } catch (error) {
+    root.innerHTML = AgendamentoTemplate.render({ errorMessage: 'Erro ao carregar dados do professor.' });
   }
 }
 
-async function carregarInfoProfessor(professorId: string) {
-  const res = await getInfoProfessor(professorId);
-  if (res.ok) {
-    const professor = await res.json();
-    const infoDiv = document.getElementById('info-professor');
-    if (infoDiv) {
-      infoDiv.innerHTML = `
-        <img src="${professor.fotoPerfil}" alt="Foto de Perfil" style="max-width: 100px; border-radius: 50%;" />
-        <p><b>Nome:</b> ${professor.nome}</p>
-        <p><b>Valor da diária:</b> R$ ${professor.valorDiaria}</p>
-        <p><b>Horas por aula:</b> ${professor.horasPorAula}</p>
-      `;
-    }
+function setupAgendamentoHandler(professorId: string) {
+  const form = document.getElementById('form-agendamento') as HTMLFormElement;
+  if (form) {
+    form.onsubmit = (event) => handleAgendamentoSubmit(event, professorId);
+  }
+  (window as any).handleAgendamentoSubmit = (event: Event) => handleAgendamentoSubmit(event, professorId);
+}
+
+async function handleAgendamentoSubmit(event: Event, professorId: string) {
+  event.preventDefault();
+  const form = event.target as HTMLFormElement;
+  const formData: AgendamentoFormData = {
+    nome: (form.nome as HTMLInputElement).value,
+    telefone: (form.telefone as HTMLInputElement).value,
+    dataHora: (form.dataHora as HTMLInputElement).value
+  };
+
+  const validation = AgendamentoService.validate(formData);
+  if (!validation.isValid) {
+    validation.errors.forEach(e => mostrarToast(e, 'danger'));
+    return;
+  }
+
+  const result = await AgendamentoService.agendar(professorId, formData);
+  if (result.success) {
+    form.reset();
+    mostrarToast('Agendamento realizado com sucesso!', 'success');
+  } else {
+    mostrarToast(result.error || 'Erro ao agendar', 'danger');
   }
 } 
