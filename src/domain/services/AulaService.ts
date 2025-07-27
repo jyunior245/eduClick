@@ -22,10 +22,10 @@ export class AulaService {
     return await this.aulaRepository.buscarPorId(aulaId);
   }
 
-  async reservarAula(aulaId: string, nome: string, telefone: string): Promise<boolean> {
+  async reservarAula(aulaId: string, nome: string, telefone: string, email: string): Promise<boolean> {
     const aula = await this.buscarAulaPorId(aulaId);
     if (!aula) throw new Error("Aula não encontrada");
-    const reservada = aula.reservarPublico(nome, telefone);
+    const reservada = aula.reservarPublico(nome, telefone, email);
     if (reservada) {
       await this.aulaRepository.salvar(aula);
     }
@@ -56,5 +56,19 @@ export class AulaService {
 
   async excluirAula(aulaId: string): Promise<void> {
     await this.aulaRepository.remover(aulaId);
+  }
+
+  async reagendarAula(aulaId: string, novaDataHora: Date): Promise<Aula | null> {
+    const aula = await this.buscarAulaPorId(aulaId);
+    if (!aula) throw new Error("Aula não encontrada");
+    aula.dataHora = novaDataHora;
+    aula.status = 'reagendada';
+    await this.aulaRepository.salvar(aula);
+    return aula;
+  }
+
+  // Método utilitário para diagnóstico
+  async listarTodasAulas(): Promise<Aula[]> {
+    return await this.aulaRepository.listarTodos();
   }
 } 
