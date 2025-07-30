@@ -9,6 +9,9 @@ import { logoutProfessor, getPerfilProfessor } from './services/api';
 import { renderHomePage } from './pages/HomePage';
 
 import { logger } from './utils/logger';
+import { FirebaseAuthProvider } from 'infrastructure/auth/LocalAuthProvider';
+import { CadastroService } from './services/CadastroService';
+import { LoginService } from './services/LoginService';
 
 logger.info('EduClick - Cliente iniciado');
 
@@ -47,6 +50,10 @@ async function rotear() {
   // Página inicial
   return renderHomePage(root);
 }
+const authProvider = new FirebaseAuthProvider();
+CadastroService.setAuthProvider(authProvider);
+LoginService.setAuthProvider(authProvider);
+
 
 window.addEventListener('popstate', rotear);
 window.addEventListener('DOMContentLoaded', rotear);

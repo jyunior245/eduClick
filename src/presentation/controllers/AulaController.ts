@@ -2,15 +2,21 @@ import { Request, Response } from 'express';
 import { AulaService } from '../../domain/services/AulaService';
 import { aulaRepository } from '../../infrastructure/repositories/singletons';
 import { Aula } from '../../core/entities/Aula';
+import { DecodedIdToken } from "firebase-admin/auth";
 
 const aulaService = new AulaService(aulaRepository);
 
+// Tipo extendido para suportar usuario (token Firebase)
+interface RequestComUsuario extends Request {
+  usuario?: DecodedIdToken;
+}
+
 export class AulaController {
-  static async criar(req: Request, res: Response) {
+  static async criar(req: RequestComUsuario, res: Response) {
     try {
       const { titulo, conteudo, valor, duracao, dataHora, observacoes, maxAlunos } = req.body;
-      const professorId = req.session.professorId;
-      console.log('[AulaController.criar] professorId da sessão:', professorId);
+      const professorId = req.usuario?.uid;
+      console.log('[AulaController.criar] professorId do token:', professorId);
       if (!professorId) {
         return res.status(401).json({ error: "Não autenticado" });
       }
@@ -43,9 +49,9 @@ export class AulaController {
     }
   }
 
-  static async listarDoProfessor(req: Request, res: Response) {
+  static async listarDoProfessor(req: RequestComUsuario, res: Response) {
     try {
-      const professorId = req.session.professorId;
+      const professorId = req.usuario?.uid;
       if (!professorId) return res.status(401).json({ error: "Não autenticado" });
       
       const aulas = await aulaService.listarAulasPorProfessor(professorId);
@@ -83,10 +89,10 @@ export class AulaController {
     }
   }
 
-  static async cancelar(req: Request, res: Response) {
+  static async cancelar(req: RequestComUsuario, res: Response) {
     try {
       const { aulaId } = req.params;
-      const professorId = req.session.professorId;
+      const professorId = req.usuario?.uid;
       
       if (!professorId) {
         return res.status(401).json({ error: "Não autenticado" });
@@ -100,11 +106,11 @@ export class AulaController {
   }
 
   // Novos métodos para funcionalidades avançadas
-  static async buscarPorId(req: Request, res: Response) {
+  static async buscarPorId(req: RequestComUsuario, res: Response) {
     try {
-      console.log('[AulaController.buscarPorId] Sessão:', req.session);
+      console.log('[AulaController.buscarPorId] Usuário:', req.usuario);
       const { aulaId } = req.params;
-      const professorId = req.session.professorId;
+      const professorId = req.usuario?.uid;
       
       if (!professorId) {
         return res.status(401).json({ error: "Não autenticado" });
@@ -126,12 +132,12 @@ export class AulaController {
     }
   }
 
-  static async atualizar(req: Request, res: Response) {
+  static async atualizar(req: RequestComUsuario, res: Response) {
     try {
-      console.log('[AulaController.atualizar] Sessão:', req.session);
+      console.log('[AulaController.atualizar] Usuário:', req.usuario);
       const { aulaId } = req.params;
       const { titulo, conteudo, valor, duracao, dataHora, observacoes, maxAlunos, status } = req.body;
-      const professorId = req.session.professorId;
+      const professorId = req.usuario?.uid;
       
       if (!professorId) {
         return res.status(401).json({ error: "Não autenticado" });
@@ -165,10 +171,10 @@ export class AulaController {
     }
   }
 
-  static async excluir(req: Request, res: Response) {
+  static async excluir(req: RequestComUsuario, res: Response) {
     try {
       const { aulaId } = req.params;
-      const professorId = req.session.professorId;
+      const professorId = req.usuario?.uid;
       
       if (!professorId) {
         return res.status(401).json({ error: "Não autenticado" });
@@ -191,7 +197,7 @@ export class AulaController {
     }
   }
 
-  static async cancelarReserva(req: Request, res: Response) {
+  static async cancelarReserva(req: RequestComUsuario, res: Response) {
     try {
       console.log('[cancelarReserva] chamada recebida:', req.method, req.originalUrl);
       const { aulaId } = req.params;
@@ -201,7 +207,7 @@ export class AulaController {
       // Logar todos os IDs de aulas existentes para diagnóstico
       const todasAulas = await aulaService.listarTodasAulas();
       console.log('[cancelarReserva] Todas as aulas existentes:', todasAulas.map(a => a.id));
-      const professorId = req.session.professorId;
+      const professorId = req.usuario?.uid;
       // Permitir cancelamento por aluno (sem autenticação de professor)
       const aula = await aulaService.buscarAulaPorId(aulaId);
       if (!aula) {
@@ -241,11 +247,11 @@ export class AulaController {
     }
   }
 
-  static async reagendar(req: Request, res: Response) {
+  static async reagendar(req: RequestComUsuario, res: Response) {
     try {
       const { aulaId } = req.params;
       const { novaDataHora } = req.body;
-      const professorId = req.session.professorId;
+      const professorId = req.usuario?.uid;
       if (!professorId) return res.status(401).json({ error: "Não autenticado" });
       const aula = await aulaService.buscarAulaPorId(aulaId);
       if (!aula) return res.status(404).json({ error: "Aula não encontrada" });

@@ -2,49 +2,52 @@ import { Professor } from "../../core/entities/Professor";
 import { Aluno } from "../../core/entities/Aluno";
 import { Usuario } from "../../core/entities/Usuario";
 import { IRepository } from "../../core/interfaces/IRepository";
+import { FirebaseAuthProvider } from "../../infrastructure/auth/LocalAuthProvider";
 
 export class AuthService {
+  logout() {
+    throw new Error("Method not implemented.");
+  }
+  private firebaseAuthProvider = new FirebaseAuthProvider();
+
   constructor(
     private professorRepository: IRepository<Professor>,
     private alunoRepository: IRepository<Aluno>
   ) {}
 
-  async registrar(usuario: Usuario): Promise<void> {
-    if (usuario instanceof Professor) {
-      const existente = await this.professorRepository.buscarPorId(usuario.id);
-      if (existente) {
-        throw new Error("Professor já cadastrado");
-      }
-      await this.professorRepository.salvar(usuario);
-    } else if (usuario instanceof Aluno) {
-      const existente = await this.alunoRepository.buscarPorId(usuario.id);
-      if (existente) {
-        throw new Error("Aluno já cadastrado");
-      }
-      await this.alunoRepository.salvar(usuario);
+  async registrarProfessor(data: {
+    nome: string;
+    email: string;
+    senha: string;
+    descricao?: string;
+    conteudosDominio?: string[];
+  }): Promise<void> {
+    const usuarioFirebase = await this.firebaseAuthProvider.registrar({
+      nome: data.nome,
+      email: data.email,
+      senha: data.senha,
+    });
+
+    const professor = new Professor(usuarioFirebase, {
+      descricao: data.descricao,
+      conteudosDominio: data.conteudosDominio || [],
+    });
+
+    const existente = await this.professorRepository.buscarPorId(professor.id);
+    if (existente) {
+      throw new Error("Professor já cadastrado");
     }
+
+    await this.professorRepository.salvar(professor);
   }
 
-  async login(email: string, senha: string): Promise<Usuario> {
-    // Tentar login como professor
-    const professores = await this.professorRepository.listarTodos();
-    const professor = professores.find(p => p.email === email && p.senha === senha);
-    if (professor) {
-      return professor;
-    }
+  async login(email: string, senha: string): Promise<Professor> {
+    const usuarioFirebase = await this.firebaseAuthProvider.login(email, senha);
+    if (!usuarioFirebase) throw new Error("Credenciais inválidas");
 
-    // Tentar login como aluno
-    const alunos = await this.alunoRepository.listarTodos();
-    const aluno = alunos.find(a => a.email === email && a.senha === senha);
-    if (aluno) {
-      return aluno;
-    }
+    const professor = await this.professorRepository.buscarPorId(usuarioFirebase.id);
+    if (!professor) throw new Error("Professor não encontrado");
 
-    throw new Error("Credenciais inválidas");
-  }
-
-  async logout(): Promise<void> {
-    // Implementação fictícia
-    return;
+    return professor;
   }
 }

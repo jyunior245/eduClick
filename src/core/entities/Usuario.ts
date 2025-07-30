@@ -1,17 +1,28 @@
 export class Usuario {
-  constructor(
-    public id: string,
-    public nome: string,
-    public email: string,
-    public senha: string,
-    public tipo: string = "usuario"
-  ) {}
+  constructor(private firebaseUser: any) {} // firebase.User do Firebase
+
+  get id(): string {
+    return this.firebaseUser.uid;
+  }
+
+  get nome(): string {
+    return this.firebaseUser.displayName || 'Usuário';
+  }
+
+  get email(): string {
+    return this.firebaseUser.email;
+  }
+
+  async getIdToken(): Promise<string> {
+    return await this.firebaseUser.getIdToken();
+  }
 
   getValor(): string {
     return this.email;
   }
 
-  autenticar(senha: string): boolean {
-    return this.senha === senha;
+  autenticar(_senha: string): boolean {
+    // Firebase cuida da autenticação
+    return true;
   }
-} 
+}
