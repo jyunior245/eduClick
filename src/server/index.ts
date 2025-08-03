@@ -7,9 +7,15 @@ import ProfessorRouter from '../presentation/routers/ProfessorRouter';
 import ProfessorPublicoRouter from '../presentation/routers/ProfessorPublicoRouter';
 import AulaRouter from '../presentation/routers/AulaRouter';
 import AuthRouter from '../presentation/routers/AuthRouter';
+import HorarioIndisponivelRouter from '../presentation/routers/HorarioIndisponivelRouter';
 import { professorRepository, aulaRepository } from '../infrastructure/repositories/singletons';
+import { Professor } from '../core/entities/Professor';
+import { Request, Response } from 'express';
 
 const MemoryStore = require('express-session').MemoryStore;
+
+// Async handler para resolver problemas de tipo com funções async
+const asyncHandler = (fn: any) => (req: any, res: any, next: any) => Promise.resolve(fn(req, res, next)).catch(next);
 
 const app = express();
 const port = 3000;
@@ -59,9 +65,10 @@ app.use('/api/professor-publico', ProfessorPublicoRouter);
 app.use('/api/aulas', AulaRouter);
 app.use('/aulas', AulaRouter);
 app.use('/api/auth', AuthRouter);
+app.use('/api', HorarioIndisponivelRouter);
 
 // Endpoint de manutenção para corrigir professorIds das aulas antigas
-app.post('/api/admin/corrigir-professor-ids', async (req, res) => {
+app.post('/api/admin/corrigir-professor-ids', asyncHandler(async (req: Request, res: Response) => {
   const professores = await professorRepository.listarTodos();
   const linkUnicoParaId: Record<string, string> = {};
   professores.forEach(p => {
@@ -76,10 +83,10 @@ app.post('/api/admin/corrigir-professor-ids', async (req, res) => {
     alteradas: alteradas.length,
     detalhes: alteradas.map(a => ({ id: a.id, professorId: a.professorId }))
   });
-});
+}));
 
 // Endpoint de diagnóstico para listar todas as aulas
-app.get('/api/admin/listar-aulas', async (req, res) => {
+app.get('/api/admin/listar-aulas', asyncHandler(async (req: Request, res: Response) => {
   const aulas = await aulaRepository.listarTodos();
   // Log detalhado para depuração
   console.log('--- LISTAGEM DE TODAS AS AULAS ---');
@@ -98,7 +105,62 @@ app.get('/api/admin/listar-aulas', async (req, res) => {
     titulo: a.titulo,
     reservas: a.reservas
   })));
-});
+}));
+
+// Endpoint para sincronizar usuário do Firebase com o backend
+app.post('/api/admin/sincronizar-usuario', asyncHandler(async (req: Request, res: Response) => {
+  const { uid, email, nome } = req.body;
+  
+  if (!uid || !email) {
+    return res.status(400).json({ error: 'UID e email são obrigatórios' });
+  }
+
+  // Verificar se o professor já existe
+  const professorExistente = await professorRepository.buscarPorId(uid);
+  
+  if (professorExistente) {
+    console.log(`Professor ${email} já existe no repositório`);
+    return res.json({ message: 'Professor já existe', professor: professorExistente });
+  }
+
+  // Criar novo professor
+  const firebaseUser = {
+    uid: uid,
+    displayName: nome || 'Professor',
+    email: email,
+  };
+
+  const professor = new Professor(firebaseUser, {
+    descricao: '',
+    conteudosDominio: []
+  });
+
+  await professorRepository.salvar(professor);
+  
+  console.log(`Professor ${email} sincronizado com sucesso`);
+  res.json({ message: 'Professor sincronizado com sucesso', professor });
+}));
+
+// Endpoint para listar todos os professores
+app.get('/api/admin/listar-professores', asyncHandler(async (req: Request, res: Response) => {
+  const professores = await professorRepository.listarTodos();
+  console.log('--- LISTAGEM DE TODOS OS PROFESSORES ---');
+  professores.forEach(p => {
+    console.log({
+      id: p.id,
+      nome: p.nome,
+      email: p.email,
+      linkUnico: p.linkUnico
+    });
+  });
+  console.log('----------------------------------------');
+  res.json(professores.map(p => ({
+    id: p.id,
+    nome: p.nome,
+    email: p.email,
+    linkUnico: p.linkUnico
+  })));
+}));
 
 // Rota de teste simples
 app.get('/api/test', (req, res) => {
