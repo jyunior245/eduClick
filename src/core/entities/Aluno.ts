@@ -1,14 +1,30 @@
 import { Usuario } from "./Usuario";
 
 export class Aluno extends Usuario {
+  public senha: string;
+  public telefone: string;
+  public fotoPerfil?: string;
+
   constructor(
-    public readonly id: string,
-    public nome: string,
-    public email: string,
-    public senha: string,
-    public telefone: string,
-    public fotoPerfil?: string
+    id: string,
+    nome: string,
+    email: string,
+    senha: string,
+    telefone: string,
+    fotoPerfil?: string
   ) {
-    super(id, nome, email, senha);
+    // Criar objeto firebaseUser simulado para passar para o super()
+    const firebaseUserFake = {
+      uid: id,
+      displayName: nome,
+      email: email,
+      getIdToken: async () => '' // ou implementar se precisar do token
+    };
+
+    super(firebaseUserFake);
+
+    this.senha = senha;
+    this.telefone = telefone;
+    this.fotoPerfil = fotoPerfil;
   }
-} 
+}
