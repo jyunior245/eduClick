@@ -16,6 +16,21 @@ import {
 
 export const API_BASE = 'http://localhost:3000/api';
 
+
+// Auth
+async function fetchComToken(url: string, options: RequestInit = {}): Promise<Response> {
+  const token = localStorage.getItem('token');
+  return fetch(url, {
+    ...options,
+    headers: {
+      ...options.headers,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    credentials: 'include'
+  });
+}
+
 // Auth
 export async function loginProfessor(email: string, senha: string): Promise<Response> {
   return fetch(`${API_BASE}/professores/login`, {
@@ -42,98 +57,82 @@ export async function logoutProfessor(): Promise<Response> {
 }
 
 // Perfil
-export async function getPerfilProfessor(): Promise<Response> {
-  return fetch(`${API_BASE}/professores/me`, { credentials: 'include' });
+export function getPerfilProfessor(): Promise<Response> {
+  return fetchComToken(`${API_BASE}/professores/me`);
 }
 
-export async function editarPerfilProfessor(data: PerfilFormData): Promise<Response> {
-  return fetch(`${API_BASE}/professores/me`, {
+export function editarPerfilProfessor(data: PerfilFormData): Promise<Response> {
+  return fetchComToken(`${API_BASE}/professores/me`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
     body: JSON.stringify(data)
   });
 }
 
 // Aulas (professor)
-export async function getMinhasAulas(): Promise<Response> {
-  return fetch(`${API_BASE}/aulas/minhas-aulas`, { credentials: 'include' });
+export function getMinhasAulas(): Promise<Response> {
+  return fetchComToken(`${API_BASE}/aulas/minhas-aulas`);
 }
 
-export async function criarAula(data: AulaFormData): Promise<Response> {
-  return fetch(`${API_BASE}/aulas/criar`, {
+export function criarAula(data: AulaFormData): Promise<Response> {
+  return fetchComToken(`${API_BASE}/aulas/criar`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
     body: JSON.stringify(data)
   });
 }
 
-export async function editarAula(aulaId: string, data: AulaFormData): Promise<Response> {
-  return fetch(`${API_BASE}/aulas/${aulaId}`, {
+export function editarAula(aulaId: string, data: AulaFormData): Promise<Response> {
+  return fetchComToken(`${API_BASE}/aulas/${aulaId}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
     body: JSON.stringify(data)
   });
 }
 
-export async function excluirAula(aulaId: string): Promise<Response> {
-  return fetch(`${API_BASE}/aulas/${aulaId}`, {
-    method: 'DELETE',
-    credentials: 'include'
+export function excluirAula(aulaId: string): Promise<Response> {
+  return fetchComToken(`${API_BASE}/aulas/${aulaId}`, {
+    method: 'DELETE'
   });
 }
 
 // Horários indisponíveis
-export async function getHorariosIndisponiveis(): Promise<Response> {
-  return fetch(`${API_BASE}/professores/me/horarios-indisponiveis`, { credentials: 'include' });
+export function getHorariosIndisponiveis(): Promise<Response> {
+  return fetchComToken(`${API_BASE}/professores/me/horarios-indisponiveis`);
 }
 
-export async function adicionarHorarioIndisponivel(data: Omit<HorarioIndisponivel, 'id'>): Promise<Response> {
-  return fetch(`${API_BASE}/professores/me/horarios-indisponiveis`, {
+export function adicionarHorarioIndisponivel(data: Omit<HorarioIndisponivel, 'id'>): Promise<Response> {
+  return fetchComToken(`${API_BASE}/professores/me/horarios-indisponiveis`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
     body: JSON.stringify(data)
   });
 }
 
-export async function removerHorarioIndisponivel(id: string): Promise<Response> {
-  return fetch(`${API_BASE}/professores/me/horarios-indisponiveis/${id}`, {
-    method: 'DELETE',
-    credentials: 'include'
+export function removerHorarioIndisponivel(id: string): Promise<Response> {
+  return fetchComToken(`${API_BASE}/professores/me/horarios-indisponiveis/${id}`, {
+    method: 'DELETE'
   });
 }
 
 // Agendamentos (professor)
-export async function getAgendamentosRecebidos(): Promise<Response> {
-  return fetch(`${API_BASE}/professores/me/agendamentos`, { credentials: 'include' });
+export function getAgendamentosRecebidos(): Promise<Response> {
+  return fetchComToken(`${API_BASE}/professores/me/agendamentos`);
 }
 
-export async function atualizarStatusAgendamento(id: string, status: Agendamento['status']): Promise<Response> {
-  return fetch(`${API_BASE}/agendamentos/${id}/status`, {
+export function atualizarStatusAgendamento(id: string, status: Agendamento['status']): Promise<Response> {
+  return fetchComToken(`${API_BASE}/agendamentos/${id}/status`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
     body: JSON.stringify({ status })
   });
 }
 
 // Página pública do professor
-export async function getProfessorPublico(linkUnico: string): Promise<Response> {
+export function getProfessorPublico(linkUnico: string): Promise<Response> {
   return fetch(`${API_BASE}/professores/${linkUnico}`);
 }
 
-export async function getAulasPublicas(linkUnico: string): Promise<Response> {
+export function getAulasPublicas(linkUnico: string): Promise<Response> {
   return fetch(`${API_BASE}/professores/${linkUnico}/aulas`);
 }
 
-export async function reservarAulaPublica(
-  linkUnico: string, 
-  aulaId: string, 
-  reserva: any // aceitar payload customizado
-): Promise<Response> {
+export function reservarAulaPublica(linkUnico: string, aulaId: string, reserva: any): Promise<Response> {
   return fetch(`${API_BASE}/professor-publico/${linkUnico}/reservar`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -141,11 +140,8 @@ export async function reservarAulaPublica(
   });
 }
 
-// Agendamentos públicos (aluno agenda com professor)
-export async function agendarComProfessor(
-  professorId: string, 
-  agendamento: AgendamentoFormData
-): Promise<Response> {
+// Agendamentos públicos (aluno)
+export function agendarComProfessor(professorId: string, agendamento: AgendamentoFormData): Promise<Response> {
   return fetch(`${API_BASE}/professores/${professorId}/agendamentos`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -153,45 +149,45 @@ export async function agendarComProfessor(
   });
 }
 
-export async function getInfoProfessor(professorId: string): Promise<Response> {
+export function getInfoProfessor(professorId: string): Promise<Response> {
   return fetch(`${API_BASE}/professores/${professorId}`);
 }
 
-export async function getAgendamentosAluno(professorId: string, telefone: string): Promise<Response> {
+export function getAgendamentosAluno(professorId: string, telefone: string): Promise<Response> {
   return fetch(`${API_BASE}/professores/${professorId}/agendamentos/aluno/${telefone}`);
 }
 
-// Aulas (detalhes, edição, exclusão, cancelamento)
-export async function getAula(aulaId: string): Promise<Response> {
-  return fetch(`${API_BASE}/aulas/${aulaId}`, { credentials: 'include' });
+// Aulas (detalhes e cancelamento)
+export function getAula(aulaId: string): Promise<Response> {
+  return fetchComToken(`${API_BASE}/aulas/${aulaId}`);
 }
 
-export async function editarAulaAPI(aulaId: string, data: AulaFormData): Promise<Response> {
-  return fetch(`${API_BASE}/aulas/${aulaId}`, {
+export function editarAulaAPI(aulaId: string, data: AulaFormData): Promise<Response> {
+  return fetchComToken(`${API_BASE}/aulas/${aulaId}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
     body: JSON.stringify(data)
   });
 }
 
-export async function excluirAulaAPI(aulaId: string): Promise<Response> {
-  return fetch(`${API_BASE}/aulas/${aulaId}`, {
-    method: 'DELETE',
-    credentials: 'include'
+export function excluirAulaAPI(aulaId: string): Promise<Response> {
+  return fetchComToken(`${API_BASE}/aulas/${aulaId}`, {
+    method: 'DELETE'
   });
 }
 
-export async function cancelarReservaAPI(aulaId: string, nome: string, telefone: string): Promise<Response> {
-  return fetch(`${API_BASE}/aulas/${aulaId}/cancelar-reserva`, {
+export function cancelarReservaAPI(aulaId: string, nome: string, telefone: string): Promise<Response> {
+  return fetchComToken(`${API_BASE}/aulas/${aulaId}/cancelar-reserva`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
     body: JSON.stringify({ nome, telefone })
   });
 }
 
-// Utilitários para tratamento de respostas
+// Página pública do professor (perfil + aulas)
+export function getPerfilEAulasPublicas(linkUnico: string): Promise<Response> {
+  return fetch(`${API_BASE}/professor-publico/${linkUnico}`);
+}
+
+// Utilitário de tratamento
 export async function handleApiResponse<T>(response: Response): Promise<ApiResponse<T>> {
   try {
     if (!response.ok) {
@@ -203,9 +199,4 @@ export async function handleApiResponse<T>(response: Response): Promise<ApiRespo
   } catch (error) {
     return { success: false, error: 'Erro ao processar resposta' };
   }
-} 
-
-// Página pública do professor (perfil + aulas juntos)
-export async function getPerfilEAulasPublicas(linkUnico: string): Promise<Response> {
-  return fetch(`${API_BASE}/professor-publico/${linkUnico}`);
-} 
+}
