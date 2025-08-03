@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { HorarioIndisponivelController } from "../controllers/HorarioIndisponivelController";
+import { verificarTokenFirebase } from "../../server/middleware/tokenFirebase";
 
 const router = Router();
 
@@ -7,10 +8,10 @@ const asyncHandler = (fn: any) => (req: any, res: any, next: any) => Promise.res
 
 // Rotas mais específicas primeiro
 router.get("/professores/:professorId/horarios-indisponiveis", asyncHandler(HorarioIndisponivelController.listarPorProfessor));
-router.delete("/me/horarios-indisponiveis/:id", asyncHandler(HorarioIndisponivelController.remover));
 
-// Rotas do professor autenticado
-router.get("/me/horarios-indisponiveis", asyncHandler(HorarioIndisponivelController.listarDoProfessorAutenticado));
-router.post("/me/horarios-indisponiveis", asyncHandler(HorarioIndisponivelController.criar));
+// Rotas protegidas do professor autenticado
+router.delete("/me/horarios-indisponiveis/:id", verificarTokenFirebase, asyncHandler(HorarioIndisponivelController.remover));
+router.get("/me/horarios-indisponiveis", verificarTokenFirebase, asyncHandler(HorarioIndisponivelController.listarDoProfessorAutenticado));
+router.post("/me/horarios-indisponiveis", verificarTokenFirebase, asyncHandler(HorarioIndisponivelController.criar));
 
 export default router; 
