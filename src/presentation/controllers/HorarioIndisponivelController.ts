@@ -3,13 +3,19 @@ import { horarioIndisponivelRepository } from "../../infrastructure/repositories
 import { HorarioIndisponivelService } from "../../domain/services/HorarioIndisponivelService";
 import { HorarioIndisponivel } from "../../core/entities/HorarioIndisponivel";
 import { v4 as uuidv4 } from "uuid";
+import { DecodedIdToken } from "firebase-admin/auth";
 
 const horarioService = new HorarioIndisponivelService(horarioIndisponivelRepository);
 
+// Tipo extendido para suportar usuario (token Firebase)
+interface RequestComUsuario extends Request {
+  usuario?: DecodedIdToken;
+}
+
 export class HorarioIndisponivelController {
-  static async criar(req: Request, res: Response) {
+  static async criar(req: RequestComUsuario, res: Response) {
     try {
-      const professorId = req.session.professorId;
+      const professorId = req.usuario?.uid;
       if (!professorId) return res.status(401).json({ error: "Não autenticado" });
       const { dataInicio, dataFim, motivo } = req.body;
       const horario = new HorarioIndisponivel(
@@ -36,9 +42,9 @@ export class HorarioIndisponivelController {
     }
   }
 
-  static async remover(req: Request, res: Response) {
+  static async remover(req: RequestComUsuario, res: Response) {
     try {
-      const professorId = req.session.professorId;
+      const professorId = req.usuario?.uid;
       if (!professorId) return res.status(401).json({ error: "Não autenticado" });
       const { id } = req.params;
       await horarioService.remover(id);
@@ -48,9 +54,9 @@ export class HorarioIndisponivelController {
     }
   }
 
-  static async listarDoProfessorAutenticado(req: Request, res: Response) {
+  static async listarDoProfessorAutenticado(req: RequestComUsuario, res: Response) {
     try {
-      const professorId = req.session.professorId;
+      const professorId = req.usuario?.uid;
       if (!professorId) return res.status(401).json({ error: "Não autenticado" });
       const horarios = await horarioService.listarPorProfessor(professorId);
       res.json(horarios);
