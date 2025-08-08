@@ -51,12 +51,20 @@ export class AulaController {
 
   static async listarDoProfessor(req: RequestComUsuario, res: Response) {
     try {
+      console.log('[AulaController.listarDoProfessor] Iniciando listagem de aulas do professor');
       const professorId = req.usuario?.uid;
-      if (!professorId) return res.status(401).json({ error: "Não autenticado" });
+      console.log('[AulaController.listarDoProfessor] professorId:', professorId);
+      
+      if (!professorId) {
+        console.log('[AulaController.listarDoProfessor] Erro: professorId não encontrado');
+        return res.status(401).json({ error: "Não autenticado" });
+      }
       
       const aulas = await aulaService.listarAulasPorProfessor(professorId);
+      console.log('[AulaController.listarDoProfessor] Aulas encontradas:', aulas.length);
       res.json(aulas);
     } catch (err: any) {
+      console.error('[AulaController.listarDoProfessor] Erro:', err);
       res.status(400).json({ error: err.message });
     }
   }
