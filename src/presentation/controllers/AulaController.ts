@@ -116,54 +116,93 @@ export class AulaController {
   // Novos métodos para funcionalidades avançadas
   static async buscarPorId(req: RequestComUsuario, res: Response) {
     try {
+      console.log('[AulaController.buscarPorId] Iniciando busca de aula por ID');
       console.log('[AulaController.buscarPorId] Usuário:', req.usuario);
       const { aulaId } = req.params;
       const professorId = req.usuario?.uid;
       
+      console.log('[AulaController.buscarPorId] aulaId:', aulaId);
+      console.log('[AulaController.buscarPorId] professorId:', professorId);
+      
       if (!professorId) {
+        console.log('[AulaController.buscarPorId] Erro: professorId não encontrado');
         return res.status(401).json({ error: "Não autenticado" });
       }
 
       const aula = await aulaService.buscarAulaPorId(aulaId);
+      console.log('[AulaController.buscarPorId] Aula encontrada:', aula ? { id: aula.id, titulo: aula.titulo } : 'null');
+      
       if (!aula) {
+        console.log('[AulaController.buscarPorId] Erro: aula não encontrada');
         return res.status(404).json({ error: "Aula não encontrada" });
       }
 
       // Verificar se a aula pertence ao professor
       if (aula.professorId !== professorId) {
+        console.log('[AulaController.buscarPorId] Erro: aula não pertence ao professor');
+        console.log('[AulaController.buscarPorId] professorId da aula:', aula.professorId);
+        console.log('[AulaController.buscarPorId] professorId do token:', professorId);
         return res.status(403).json({ error: "Acesso negado" });
       }
 
+      console.log('[AulaController.buscarPorId] Aula retornada com sucesso');
       res.json(aula);
     } catch (err: any) {
+      console.error('[AulaController.buscarPorId] Erro:', err);
       res.status(400).json({ error: err.message });
     }
   }
 
   static async atualizar(req: RequestComUsuario, res: Response) {
     try {
+      console.log('[AulaController.atualizar] Iniciando atualização de aula');
       console.log('[AulaController.atualizar] Usuário:', req.usuario);
+      console.log('[AulaController.atualizar] Headers:', req.headers);
+      console.log('[AulaController.atualizar] Body:', req.body);
+      
       const { aulaId } = req.params;
       const { titulo, conteudo, valor, duracao, dataHora, observacoes, maxAlunos, status } = req.body;
       const professorId = req.usuario?.uid;
       
+      console.log('[AulaController.atualizar] aulaId:', aulaId);
+      console.log('[AulaController.atualizar] professorId do token:', professorId);
+      console.log('[AulaController.atualizar] Dados recebidos:', { titulo, valor, duracao, dataHora, status });
+      
       if (!professorId) {
+        console.log('[AulaController.atualizar] Erro: professorId não encontrado no token');
         return res.status(401).json({ error: "Não autenticado" });
       }
 
       const aula = await aulaService.buscarAulaPorId(aulaId);
       if (!aula) {
+        console.log('[AulaController.atualizar] Erro: aula não encontrada');
         return res.status(404).json({ error: "Aula não encontrada" });
       }
 
+      console.log('[AulaController.atualizar] Aula encontrada:', {
+        id: aula.id,
+        professorId: aula.professorId,
+        titulo: aula.titulo
+      });
+
       // Verificar se a aula pertence ao professor
       if (aula.professorId !== professorId) {
+        console.log('[AulaController.atualizar] Erro: aula não pertence ao professor');
+        console.log('[AulaController.atualizar] professorId da aula:', aula.professorId);
+        console.log('[AulaController.atualizar] professorId do token:', professorId);
         return res.status(403).json({ error: "Acesso negado" });
       }
 
+      // Atualizar campos da aula
+      if (titulo !== undefined) aula.titulo = titulo;
+      if (conteudo !== undefined) aula.conteudo = conteudo;
+      if (valor !== undefined) aula.valor = valor;
+      if (duracao !== undefined) aula.duracao = duracao;
+      
       if (dataHora) {
         const novaData = new Date(dataHora);
         if (isNaN(novaData.getTime())) {
+          console.log('[AulaController.atualizar] Erro: data/hora inválida');
           return res.status(400).json({ error: "Data/Hora inválida" });
         }
         aula.dataHora = novaData;
@@ -172,9 +211,19 @@ export class AulaController {
       if (maxAlunos !== undefined) aula.maxAlunos = maxAlunos;
       if (status) aula.status = status;
 
+      console.log('[AulaController.atualizar] Atualizando aula com dados:', {
+        titulo: aula.titulo,
+        valor: aula.valor,
+        duracao: aula.duracao,
+        dataHora: aula.dataHora,
+        status: aula.status
+      });
+
       await aulaService.atualizarAula(aula);
+      console.log('[AulaController.atualizar] Aula atualizada com sucesso');
       res.json({ message: "Aula atualizada com sucesso", aula });
     } catch (err: any) {
+      console.error('[AulaController.atualizar] Erro:', err);
       res.status(400).json({ error: err.message });
     }
   }
