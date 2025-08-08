@@ -106,31 +106,69 @@ export class ProfessorPublicoController {
     try {
       const { id } = req.params;
       const { nome, telefone, email } = req.query;
-      console.log('[listarAgendamentosAluno] Parâmetros recebidos:', { nome, telefone, email });
+      
+      console.log('[listarAgendamentosAluno] Parâmetros recebidos:', { id, nome, telefone, email });
+      
+      // Validação dos parâmetros obrigatórios
+      if (!nome || !telefone || !email) {
+        return res.status(400).json({ 
+          error: "Parâmetros obrigatórios: nome, telefone e email são necessários" 
+        });
+      }
+      
       // Buscar professor pelo linkUnico ou id
       const professores = await professorService.listarTodos();
+      console.log('[listarAgendamentosAluno] Total de professores:', professores.length);
+      
       const professor = professores.find(p => p.linkUnico === id || p.id === id);
-      if (!professor) return res.status(404).json({ error: "Professor não encontrado" });
+      console.log('[listarAgendamentosAluno] Professor encontrado:', professor ? { id: professor.id, nome: professor.nome } : 'não encontrado');
+      
+      if (!professor) {
+        return res.status(404).json({ error: "Professor não encontrado" });
+      }
+      
       // Buscar aulas do professor pelo UUID
       const aulas = await aulaService.listarAulasPorProfessor(professor.id);
+      console.log('[listarAgendamentosAluno] Aulas encontradas via serviço:', aulas.length);
+      
+      // Teste alternativo: buscar diretamente do repositório
+      const todasAulas = await aulaRepository.listarTodos();
+      console.log('[listarAgendamentosAluno] Total de aulas no repositório:', todasAulas.length);
+      
+      const aulasDiretas = todasAulas.filter(a => a.professorId === professor.id);
+      console.log('[listarAgendamentosAluno] Aulas encontradas via repositório direto:', aulasDiretas.length);
+      
+      // Log detalhado das aulas para debug
+      todasAulas.forEach((aula, idx) => {
+        console.log(`[listarAgendamentosAluno] Aula ${idx + 1}: professorId=${aula.professorId} (${typeof aula.professorId}), professor.id=${professor.id} (${typeof professor.id}), match=${aula.professorId === professor.id}`);
+      });
+      
       console.log(`[listarAgendamentosAluno] Professor id: ${professor.id}, aulas encontradas: ${aulas.length}`);
+      
+      // Log detalhado das aulas e suas reservas
       aulas.forEach((aula: any, idx: number) => {
         console.log(`[listarAgendamentosAluno] Aula ${idx + 1} (${aula.id}): reservas =`, aula.reservas);
       });
+      
       // Filtrar reservas do aluno
       const agendamentos = aulas.flatMap((aula: any) => {
         return (aula.reservas || []).filter((reserva: any) => {
           // Logar cada reserva
           console.log('[listarAgendamentosAluno] Reserva encontrada:', reserva);
+          
           // Função para normalizar telefone (remover máscara, espaços, etc)
           const normalizePhone = (t: string) => t.replace(/\D/g, '');
+          
           const matchTelefone = telefone ? normalizePhone(reserva.telefone) === normalizePhone(String(telefone)) : true;
           const matchNome = nome ? reserva.nome.trim().toLowerCase() === String(nome).trim().toLowerCase() : true;
           const matchEmail = email ? reserva.email.trim().toLowerCase() === String(email).trim().toLowerCase() : true;
+          
           const result = matchTelefone && matchNome && matchEmail;
+          
           if (result) {
             console.log('[listarAgendamentosAluno] Reserva corresponde ao filtro:', reserva);
           }
+          
           return result;
         }).map((reserva: any) => ({
           id: aula.id,
@@ -147,10 +185,13 @@ export class ProfessorPublicoController {
           email: reserva.email
         }));
       });
+      
       console.log('[listarAgendamentosAluno] Agendamentos retornados:', agendamentos);
       res.json(agendamentos);
+      
     } catch (err: any) {
-      res.status(400).json({ error: err.message });
+      console.error('[listarAgendamentosAluno] Erro:', err);
+      res.status(500).json({ error: `Erro interno do servidor: ${err.message}` });
     }
   }
 } 
