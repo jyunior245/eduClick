@@ -5,7 +5,7 @@
   "scripts": {
     "start:api": "ts-node src/server/index.ts",
     "start:client": "parcel src/client/index.html --port 1234 --host localhost",
-    "start": "concurrently \"npm:start:api\" \"npm:start:client\"",
+    "start": "concurrently \"npm run start:api\" \"npm run start:client\"",
     "build": "parcel build src/client/index.html",
     "test": "jest --config=jest.config.js",
     "test:watch": "jest --watch",
@@ -31,6 +31,7 @@
     "crypto-browserify": "^3.12.1",
     "events": "^3.3.0",
     "jest": "^30.0.3",
+    "os-browserify": "^0.3.0",
     "parcel": "^2.15.4",
     "parcel-reporter-static-files-copy": "^1.5.3",
     "path-browserify": "^1.0.1",
@@ -48,12 +49,21 @@
     "vm-browserify": "^1.1.2"
   },
   "dependencies": {
+    "@fullcalendar/core": "^6.1.18",
+    "@fullcalendar/daygrid": "^6.1.18",
+    "@fullcalendar/interaction": "^6.1.18",
+    "@fullcalendar/list": "^6.1.18",
+    "@fullcalendar/timegrid": "^6.1.18",
     "@types/express-session": "^1.18.2",
+    "admin": "^1.4.1",
     "body-parser": "^2.2.0",
     "concurrently": "^9.2.0",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
     "express": "^4.18.2",
     "express-session": "^1.18.1",
+    "firebase": "^12.1.0",
+    "firebase-admin": "^13.4.0",
     "uuid": "^11.1.0"
   },
   "proxy": "http://localhost:3000"

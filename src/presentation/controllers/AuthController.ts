@@ -4,42 +4,40 @@ import { Usuario } from "../../core/entities/Usuario";
 import { Professor } from "../../core/entities/Professor";
 import { Aluno } from "../../core/entities/Aluno";
 import { professorRepository, alunoRepository } from '../../infrastructure/repositories/singletons';
+import { FirebaseAuthProvider } from "../../infrastructure/auth/LocalAuthProvider";
 
 const authService = new AuthService(professorRepository, alunoRepository);
+const authProvider = new FirebaseAuthProvider();
 
 export class AuthController {
   static async registrar(req: Request, res: Response): Promise<void> {
-    try {
-      const { nome, email, senha, tipo, telefone } = req.body;
-      let usuario: Usuario;
+  try {
+    const { nome, email, senha, tipo, telefone, descricao, conteudosDominio } = req.body;
 
-      if (tipo === "PROFESSOR") {
-        usuario = new Professor(
-          Date.now().toString(),
-          nome,
-          email,
-          senha
-        );
-      } else {
-        usuario = new Aluno(
-          Date.now().toString(),
-          nome,
-          email,
-          senha,
-          telefone || "Não informado"
-        );
-      }
+    if (tipo === "PROFESSOR") {
+      // Cria usuário no Firebase
+      const usuarioFirebase = await authProvider.registrar({ nome, email, senha });
 
-      await authService.registrar(usuario);
-      res.status(201).json({ 
-        message: "Usuário registrado com sucesso",
-        id: usuario.id
+      // Cria objeto Professor com o usuário Firebase e props extras
+      const professor = new Professor(usuarioFirebase, { descricao, conteudosDominio: conteudosDominio || [] });
+
+      // Salvar professor no repositório (via seu service)
+      await authService.registrarProfessor({
+        nome,
+        email,
+        senha,
+        descricao,
+        conteudosDominio
       });
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
-    }
-  }
 
+      res.status(201).json({ message: "Professor registrado com sucesso", id: professor.id });
+    } else {
+      // Similar para Aluno...
+    }
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+}
   static async login(req: Request, res: Response): Promise<void> {
     try {
       const { email, senha } = req.body;

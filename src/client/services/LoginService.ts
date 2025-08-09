@@ -82,7 +82,7 @@ export class LoginService {
       if (error.message.includes('Email ou senha incorretos')) {
         mostrarToast('Email ou senha incorretos. Verifique suas credenciais.', 'danger');
       } else if (error.message.includes('Usuário não encontrado')) {
-        mostrarToast('Usuário não encontrado. Verifique se você já se cadastrou.', 'warning');
+        mostrarToast('Usuário não encontrado. Verifique se você já se cadastrou.', 'danger');
       } else if (error.message.includes('Senha incorreta')) {
         mostrarToast('Senha incorreta. Tente novamente.', 'danger');
       } else if (error.message.includes('Erro de conexão')) {

@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import bodyParser from 'body-parser';
 import session from 'express-session';
@@ -24,8 +25,9 @@ app.use(express.json()); // Middleware para processar JSON
 
 // Se o frontend está rodando em 1234, mantenha o CORS para 1234, mas garanta que o frontend faça requisições para 3000
 app.use(cors({
-  origin: 'http://localhost:1234', // frontend
-  credentials: true
+  origin: 'http://localhost:1234',
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(bodyParser.json());

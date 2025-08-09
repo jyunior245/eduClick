@@ -1,18 +1,29 @@
 import { IAuthProvider } from "../../core/interfaces/IAuthProvider";
 import { Usuario } from "../../core/entities/Usuario";
-import { auth } from "../../client/firebase"; // IMPORT CORRETO
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  User,
-  updateProfile,
-  fetchSignInMethodsForEmail
-} from "firebase/auth";
+
+// Nota importante: Evitamos importar o SDK do Firebase no topo do arquivo,
+// pois esse provider também pode ser importado indiretamente no lado do servidor.
+// Em vez disso, carregamos dinamicamente apenas no navegador.
 
 export class FirebaseAuthProvider implements IAuthProvider {
+  private async getFirebaseAuth() {
+    // Garante que só roda no navegador
+    if (typeof window === 'undefined') {
+      throw new Error('FirebaseAuthProvider só pode ser usado no cliente');
+    }
+    const { auth } = await import('../../client/firebase');
+    const {
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      signOut,
+      updateProfile,
+      fetchSignInMethodsForEmail,
+    } = await import('firebase/auth');
+    return { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, fetchSignInMethodsForEmail };
+  }
   async registrar(data: { nome: string; email: string; senha: string }): Promise<Usuario> {
     try {
+      const { auth, createUserWithEmailAndPassword, updateProfile } = await this.getFirebaseAuth();
       const cred = await createUserWithEmailAndPassword(auth, data.email, data.senha);
       
       // Atualizar o displayName do usuário
@@ -53,6 +64,7 @@ export class FirebaseAuthProvider implements IAuthProvider {
 
   async login(email: string, senha: string): Promise<Usuario | null> {
     try {
+      const { auth, signInWithEmailAndPassword } = await this.getFirebaseAuth();
       const userCredential = await signInWithEmailAndPassword(auth, email, senha);
       const user = userCredential.user;
 
@@ -88,11 +100,13 @@ export class FirebaseAuthProvider implements IAuthProvider {
   }
 
   async logout(): Promise<void> {
+    const { auth, signOut } = await this.getFirebaseAuth();
     await signOut(auth);
   }
 
   async verificarSeUsuarioExiste(email: string): Promise<boolean> {
     try {
+      const { auth, fetchSignInMethodsForEmail } = await this.getFirebaseAuth();
       const methods = await fetchSignInMethodsForEmail(auth, email);
       console.log(`Métodos de login para ${email}:`, methods);
       return methods.length > 0;
