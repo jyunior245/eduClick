@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const usuarioController_1 = require("../controllers/usuarioController");
+const router = (0, express_1.Router)();
+const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+router.post('/', asyncHandler(usuarioController_1.criarUsuario));
+router.get('/', asyncHandler(usuarioController_1.listarUsuarios));
+router.get('/:id', asyncHandler(usuarioController_1.buscarUsuario));
+router.put('/:id', asyncHandler(usuarioController_1.atualizarUsuario));
+router.delete('/:id', asyncHandler(usuarioController_1.removerUsuario));
+exports.default = router;
