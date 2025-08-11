@@ -4,11 +4,11 @@ import path from 'path';
 // Detecta se está rodando em produção (build) ou desenvolvimento
 const isProd = __dirname.includes('dist');
 
-const DB_HOST = process.env.DB_HOST || 'localhost';
-const DB_PORT = Number(process.env.DB_PORT || 5432);
-const DB_USER = process.env.DB_USER || 'postgres';
-const DB_PASS = process.env.DB_PASS || 'postgres';
-const DB_NAME = process.env.DB_NAME || 'educlick';
+const DB_HOST = process.env.DB_HOST;
+const DB_PORT = Number(process.env.DB_PORT);
+const DB_USER = process.env.DB_USER;
+const DB_PASS = process.env.DB_PASS;
+const DB_NAME = process.env.DB_NAME;
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
