@@ -1,0 +1,131 @@
+
+
+import { TypeORMAulaRepository } from './TypeORMAulaRepository';
+import { Aula, StatusAula } from '../../server/entities/Aula';
+import { AppDataSource } from '../database/dataSource';
+import { Usuario } from '../../server/entities/Usuario';
+import { Aluno } from '../../server/entities/Aluno';
+import { Reserva } from '../../server/entities/Reserva';
+
+export class TypeORMAulaService {
+  constructor(private typeormAulaRepository: TypeORMAulaRepository) {}
+
+  async listarAulasDisponiveisPorProfessor(professorId: string): Promise<Aula[]> {
+    const aulas = await this.typeormAulaRepository.listarDisponiveisPorProfessor(Number(professorId));
+    // Garantir que só retornamos aulas com vagas restantes
+    return aulas.filter(a => {
+      const total = typeof a.vagas_total === 'number' ? a.vagas_total : Number(a.vagas_total) || 0;
+      // Preferir contar reservas ativas para evitar inconsistências
+      const reservasAtivas = ((a as any).reservas || []).filter((r: any) => String(r?.status || '').toLowerCase() === 'ativa');
+      const ocup = reservasAtivas.length > 0 || Array.isArray((a as any).reservas)
+        ? reservasAtivas.length
+        : (typeof a.vagas_ocupadas === 'number' ? a.vagas_ocupadas : Number(a.vagas_ocupadas) || 0);
+      return total > ocup;
+    });
+  }
+
+  async listarAulasPorProfessor(professorId: string): Promise<Aula[]> {
+    // Busca todas as aulas do professor
+    return this.typeormAulaRepository['repository'].find({
+      where: { professor: { id: Number(professorId) } },
+      relations: ['professor', 'reservas', 'reservas.aluno', 'reservas.aluno.usuario']
+    });
+  }
+
+  async buscarAulaPorId(aulaId: string): Promise<Aula | null> {
+    return this.typeormAulaRepository['repository'].findOne({
+      where: { id: Number(aulaId) },
+      relations: ['professor']
+    });
+  }
+
+  async reservarAula(aulaId: string, nome: string, telefone: string, email: string, alunoFcmToken?: string | null): Promise<boolean> {
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      // 0. Lock na linha da aula SEM relations (evita erro Postgres com outer joins + FOR UPDATE)
+      const aula = await queryRunner.manager.findOne(Aula, {
+        where: { id: Number(aulaId) },
+        lock: { mode: 'pessimistic_write' }
+      });
+      if (!aula) {
+        console.warn('[reservarAula] Aula não encontrada:', aulaId);
+        await queryRunner.rollbackTransaction();
+        return false;
+      }
+      // Contar reservas ativas diretamente via repo (sem carregar relation na aula bloqueada)
+      const reservaRepoForCount = queryRunner.manager.getRepository(Reserva);
+      const ocupadas = await reservaRepoForCount.count({ where: { aula: { id: aula.id } as any, status: 'ativa' as any } });
+      let total = typeof (aula as any).vagas_total === 'number' ? (aula as any).vagas_total : Number((aula as any).vagas_total) || 0;
+      // Após alterações de schema, vagas_total pode vir nulo/0; assuma 1 como padrão mínimo
+      if (!Number.isFinite(total) || total <= 0) total = 1;
+      if (ocupadas >= total) {
+        console.warn('[reservarAula] Aula lotada (contagem por reservas ativas):', aula.id, 'ocupadas:', ocupadas, 'total:', aula.vagas_total);
+        await queryRunner.rollbackTransaction();
+        return false;
+      }
+      // Auto-heal: se há vagas disponíveis mas status não está reservável, ajustar para DISPONIVEL
+      if (![StatusAula.DISPONIVEL, StatusAula.REAGENDADA].includes(aula.status as any)) {
+        console.warn('[reservarAula] Ajustando status não-reservável para DISPONIVEL. Aula:', aula.id, 'Status atual:', aula.status, 'ocupadas/total:', ocupadas, '/', total);
+        aula.status = StatusAula.DISPONIVEL as any;
+        await queryRunner.manager.getRepository(Aula).save(aula);
+      }
+
+      // 1. Buscar ou criar Usuario (tipo aluno)
+      const usuarioRepo = queryRunner.manager.getRepository(Usuario);
+      let usuario = await usuarioRepo.findOne({ where: { email: email.toLowerCase() } });
+      if (!usuario) {
+        usuario = usuarioRepo.create({
+          uid: `aluno_${Date.now()}_${Math.floor(Math.random()*10000)}`,
+          nome,
+          email: email.toLowerCase(),
+          senha: '',
+          tipo: 'aluno',
+        });
+        await usuarioRepo.save(usuario);
+      }
+
+      // 2. Buscar ou criar Aluno
+      const alunoRepo = queryRunner.manager.getRepository(Aluno);
+      let aluno = await alunoRepo.findOne({ where: { usuario: { id: usuario.id } }, relations: ['usuario'] });
+      if (!aluno) {
+        aluno = alunoRepo.create({ usuario });
+        await alunoRepo.save(aluno);
+      }
+
+      // 3. Criar Reserva
+      const reservaRepo = queryRunner.manager.getRepository(Reserva);
+      const reserva = reservaRepo.create({
+        aula,
+        aluno,
+        status: 'ativa',
+        data_reserva: new Date(),
+        telefone,
+        nome,
+        email: email.toLowerCase(),
+        fcmToken: alunoFcmToken || null as any,
+      });
+      await reservaRepo.save(reserva);
+
+      // 4. Atualizar vagas ocupadas com base nas reservas ativas e status
+      aula.vagas_ocupadas = ocupadas + 1;
+      let totalAfter = typeof (aula as any).vagas_total === 'number' ? (aula as any).vagas_total : Number((aula as any).vagas_total) || 0;
+      if (!Number.isFinite(totalAfter) || totalAfter <= 0) totalAfter = 1;
+      if (aula.vagas_ocupadas >= totalAfter) {
+        aula.status = StatusAula.LOTADA as any;
+      }
+      await queryRunner.manager.getRepository(Aula).save(aula);
+
+      await queryRunner.commitTransaction();
+      console.log('[reservarAula] Reserva persistida para aula:', aula.id, 'Aluno:', aluno.id, 'Reserva:', reserva.id);
+      return true;
+    } catch (e) {
+      console.error('[reservarAula] erro na transação:', e);
+      try { await queryRunner.rollbackTransaction(); } catch {}
+      return false;
+    } finally {
+      try { await queryRunner.release(); } catch {}
+    }
+  }
+}
