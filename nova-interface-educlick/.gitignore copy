@@ -1,0 +1,12 @@
+# Environment files
+.env
+*.env
+
+# Firebase service account (do not commit secrets)
+src/server/middleware/serviceAccountKey.json
+
+# Parcel/Build artifacts
+.dist
+.cache
+.parcel-cache
+node_modules
