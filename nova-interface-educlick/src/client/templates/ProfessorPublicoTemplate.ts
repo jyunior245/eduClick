@@ -47,15 +47,18 @@ export class ProfessorPublicoTemplate {
                     <div class="col-12 col-md-6 col-lg-4">
                       <div class="card h-100 border-primary">
                         <div class="card-body">
-                          <h5 class="card-title">${aula.titulo}</h5>
+                          <h5 class="card-title d-flex align-items-center justify-content-between">
+                            <span>${aula.titulo}</span>
+                            ${aula.status === 'REAGENDADA' ? `<span class='badge bg-warning text-dark ms-2'>Reagendada</span>` : ''}
+                          </h5>
                           <div><b>Conteúdo:</b> ${aula.conteudo}</div>
-                          <div><b>Data/Hora:</b> ${new Date(aula.dataHora).toLocaleString()}</div>
+                          <div><b>${aula.status === 'REAGENDADA' ? 'Nova Data/Hora' : 'Data/Hora'}:</b> ${new Date(aula.dataHora).toLocaleString()}</div>
                           <div><b>Duração:</b> ${aula.duracao} min</div>
                           <div><b>Valor:</b> R$ ${aula.valor?.toFixed(2) || '-'}</div>
                           <div><b>Vagas:</b> ${typeof aula.vagas_restantes === 'number' ? aula.vagas_restantes : '-'} / ${typeof aula.vagas_total === 'number' ? aula.vagas_total : '-'}</div>
                           <div class="mt-3">
-                            <button class="btn btn-outline-primary w-100" onclick="${params.onReservar || 'handleReservarAula'}('${aula.id}')">
-                              <i class="bi bi-calendar-plus"></i> Reservar
+                            <button class="btn btn-outline-primary w-100" ${aula.vagas_restantes && aula.vagas_restantes > 0 ? '' : 'disabled'} onclick="${params.onReservar || 'handleReservarAula'}('${aula.id}')">
+                              <i class="bi bi-calendar-plus"></i> ${aula.status === 'REAGENDADA' ? 'Reservar (Reagendada)' : 'Reservar'}
                             </button>
                           </div>
                         </div>

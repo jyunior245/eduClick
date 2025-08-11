@@ -1306,6 +1306,7 @@ parcelHelpers.export(exports, "auth", ()=>auth);
 parcelHelpers.export(exports, "provider", ()=>provider);
 var _app = require("firebase/app");
 var _auth = require("firebase/auth");
+// Parcel substitui process.env.* em build e lê .env automaticamente no root do projeto.
 const firebaseConfig = {
     apiKey: "AIzaSyDyfcBWFbR-nx3hxcZNjAILDJ8mHWCY5Ic",
     authDomain: "educlick-681b9.firebaseapp.com",
@@ -33779,6 +33780,8 @@ var __awaiter = undefined && undefined.__awaiter || function(thisArg, _arguments
 let professorCache = null;
 let aulasCache = [];
 let linkUnicoCache = '';
+let aulasRefreshTimer = null;
+let meusAgendamentosTimer = null;
 function renderProfessorPublicoPage(root, linkUnico) {
     return __awaiter(this, void 0, void 0, function*() {
         linkUnicoCache = linkUnico;
@@ -33792,6 +33795,7 @@ function renderProfessorPublicoPage(root, linkUnico) {
             });
             setupReservarHandler();
             setupConsultaAgendamentoButton(linkUnico);
+            startAulasAutoRefresh(root);
         } catch (error) {
             console.error('[renderProfessorPublicoPage] erro:', error);
             root.innerHTML = (0, _professorPublicoTemplate.ProfessorPublicoTemplate).render({
@@ -33799,6 +33803,40 @@ function renderProfessorPublicoPage(root, linkUnico) {
             });
         }
     });
+}
+function startAulasAutoRefresh(root) {
+    if (aulasRefreshTimer) clearInterval(aulasRefreshTimer);
+    aulasRefreshTimer = setInterval(()=>__awaiter(this, void 0, void 0, function*() {
+            try {
+                const data = yield (0, _professorPublicoService.ProfessorPublicoService).carregarPerfilEAulas(linkUnicoCache);
+                const novasAulas = data.aulas || [];
+                // Re-render apenas se houve mudança relevante
+                const before = JSON.stringify(aulasCache.map((a)=>({
+                        id: a.id,
+                        status: a.status,
+                        dataHora: a.dataHora,
+                        vagas_restantes: a.vagas_restantes
+                    })));
+                const after = JSON.stringify(novasAulas.map((a)=>({
+                        id: a.id,
+                        status: a.status,
+                        dataHora: a.dataHora,
+                        vagas_restantes: a.vagas_restantes
+                    })));
+                if (before !== after) {
+                    aulasCache = novasAulas;
+                    professorCache = data.professor || professorCache;
+                    root.innerHTML = (0, _professorPublicoTemplate.ProfessorPublicoTemplate).render({
+                        professor: professorCache,
+                        aulas: aulasCache
+                    });
+                    setupReservarHandler();
+                    setupConsultaAgendamentoButton(linkUnicoCache);
+                }
+            } catch (e) {
+            // silencioso
+            }
+        }), 15000);
 }
 function setupReservarHandler() {
     window.handleReservarAula = handleReservarAula;
@@ -33881,6 +33919,7 @@ function handleReservaSubmit(event, aulaId, modal) {
                     });
                     setupReservarHandler();
                     setupConsultaAgendamentoButton(linkUnicoCache);
+                    startAulasAutoRefresh(root);
                 }
             } catch (e) {
                 console.warn("[handleReservaSubmit] n\xe3o foi poss\xedvel recarregar aulas:", e);
@@ -34022,9 +34061,12 @@ function renderResultadoConsultaAgendamento(agendamentos) {
           </div>
           <div class="modal-body">
             ${!agendamentos || agendamentos.length === 0 ? `<div class='alert alert-info'>Nenhum agendamento encontrado para os dados informados.</div>` : agendamentos.map((a)=>{
-        // Badge de status da aula
+        // Badge de status da aula (inclui destaque para REAGENDADA)
         let statusAulaBadge = `<span class='badge bg-secondary'>${a.statusAula || '-'}</span>`;
-        if ((a.statusAula || '').toLowerCase() === 'disponivel' || (a.statusAula || '').toLowerCase() === "dispon\xedvel") statusAulaBadge = `<span class='badge bg-success'>${a.statusAula}</span>`;
+        const statusAulaLc = (a.statusAula || '').toLowerCase();
+        if (statusAulaLc === 'disponivel' || statusAulaLc === "dispon\xedvel") statusAulaBadge = `<span class='badge bg-success'>${a.statusAula}</span>`;
+        else if (statusAulaLc === 'reagendada') statusAulaBadge = `<span class='badge bg-warning text-dark'>Reagendada</span>`;
+        else if (statusAulaLc === 'cancelada') statusAulaBadge = `<span class='badge bg-danger'>Cancelada</span>`;
         // Data/hora formatada (mostrar string crua se não for possível converter)
         let dataHoraRaw = a.dataHora || a.data_hora;
         let dataHoraStr = '-';
@@ -34057,7 +34099,7 @@ function renderResultadoConsultaAgendamento(agendamentos) {
                         <p class='mb-1'><b>Telefone:</b> ${a.professorTelefone || '-'}</p>
                       </div>
                       <div class='mb-2' style='min-width:180px;'>
-                        <p class='mb-1'><b>Data/Hora:</b> <span class='text-primary'>${dataHoraStr}</span></p>
+                        <p class='mb-1'><b>${statusAulaLc === 'reagendada' ? 'Nova Data/Hora' : 'Data/Hora'}:</b> <span class='text-primary'>${dataHoraStr}</span></p>
                         <p class='mb-1'><b>Status da Aula:</b> <span class='text-primary'>${a.statusAula || '-'}</span></p>
                         <p class='mb-1'><b>Status da Reserva:</b> ${statusReservaBadge}</p>
                         ${debugInfo}
@@ -34134,15 +34176,18 @@ class ProfessorPublicoTemplate {
                     <div class="col-12 col-md-6 col-lg-4">
                       <div class="card h-100 border-primary">
                         <div class="card-body">
-                          <h5 class="card-title">${aula.titulo}</h5>
+                          <h5 class="card-title d-flex align-items-center justify-content-between">
+                            <span>${aula.titulo}</span>
+                            ${aula.status === 'REAGENDADA' ? `<span class='badge bg-warning text-dark ms-2'>Reagendada</span>` : ''}
+                          </h5>
                           <div><b>Conte\xfado:</b> ${aula.conteudo}</div>
-                          <div><b>Data/Hora:</b> ${new Date(aula.dataHora).toLocaleString()}</div>
+                          <div><b>${aula.status === 'REAGENDADA' ? 'Nova Data/Hora' : 'Data/Hora'}:</b> ${new Date(aula.dataHora).toLocaleString()}</div>
                           <div><b>Dura\xe7\xe3o:</b> ${aula.duracao} min</div>
                           <div><b>Valor:</b> R$ ${((_a = aula.valor) === null || _a === void 0 ? void 0 : _a.toFixed(2)) || '-'}</div>
                           <div><b>Vagas:</b> ${typeof aula.vagas_restantes === 'number' ? aula.vagas_restantes : '-'} / ${typeof aula.vagas_total === 'number' ? aula.vagas_total : '-'}</div>
                           <div class="mt-3">
-                            <button class="btn btn-outline-primary w-100" onclick="${params.onReservar || 'handleReservarAula'}('${aula.id}')">
-                              <i class="bi bi-calendar-plus"></i> Reservar
+                            <button class="btn btn-outline-primary w-100" ${aula.vagas_restantes && aula.vagas_restantes > 0 ? '' : 'disabled'} onclick="${params.onReservar || 'handleReservarAula'}('${aula.id}')">
+                              <i class="bi bi-calendar-plus"></i> ${aula.status === 'REAGENDADA' ? 'Reservar (Reagendada)' : 'Reservar'}
                             </button>
                           </div>
                         </div>

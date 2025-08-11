@@ -11,7 +11,13 @@ export class TypeORMAulaService {
   constructor(private typeormAulaRepository: TypeORMAulaRepository) {}
 
   async listarAulasDisponiveisPorProfessor(professorId: string): Promise<Aula[]> {
-    return this.typeormAulaRepository.listarDisponiveisPorProfessor(Number(professorId));
+    const aulas = await this.typeormAulaRepository.listarDisponiveisPorProfessor(Number(professorId));
+    // Garantir que só retornamos aulas com vagas restantes
+    return aulas.filter(a => {
+      const total = typeof a.vagas_total === 'number' ? a.vagas_total : Number(a.vagas_total) || 0;
+      const ocup = typeof a.vagas_ocupadas === 'number' ? a.vagas_ocupadas : Number(a.vagas_ocupadas) || 0;
+      return total > ocup;
+    });
   }
 
   async listarAulasPorProfessor(professorId: string): Promise<Aula[]> {
@@ -36,8 +42,9 @@ export class TypeORMAulaService {
       console.warn('[reservarAula] Aula não encontrada:', aulaId);
       return false;
     }
-    if (aula.status !== StatusAula.DISPONIVEL) {
-      console.warn('[reservarAula] Aula não está disponível:', aula.id, 'Status:', aula.status);
+    // Permitir reserva se a aula estiver DISPONIVEL ou REAGENDADA
+    if (![StatusAula.DISPONIVEL, StatusAula.REAGENDADA].includes(aula.status as any)) {
+      console.warn('[reservarAula] Aula não está em um status reservável:', aula.id, 'Status:', aula.status);
       return false;
     }
     if (aula.vagas_ocupadas >= aula.vagas_total) {

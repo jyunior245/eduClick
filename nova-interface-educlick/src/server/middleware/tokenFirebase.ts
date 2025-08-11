@@ -3,8 +3,20 @@ import { Request, Response, NextFunction } from 'express';
 
 // Inicializa o Firebase Admin apenas se ainda não tiver sido inicializado
 if (!admin.apps.length) {
+  const projectId = process.env.FIREBASE_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const privateKey = (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n');
+
+  if (!projectId || !clientEmail || !privateKey) {
+    console.warn('[FirebaseAdmin] Variáveis de ambiente ausentes para inicialização (FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY).');
+  }
+
   admin.initializeApp({
-    credential: admin.credential.cert(require('./serviceAccountKey.json'))
+    credential: admin.credential.cert({
+      projectId: projectId as string,
+      clientEmail: clientEmail as string,
+      privateKey: privateKey as string,
+    }),
   });
 }
 

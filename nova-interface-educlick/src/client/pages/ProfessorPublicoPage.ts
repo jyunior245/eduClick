@@ -7,6 +7,8 @@ import { API_BASE } from '../services/api';
 let professorCache: any = null;
 let aulasCache: any[] = [];
 let linkUnicoCache: string = '';
+let aulasRefreshTimer: any = null;
+let meusAgendamentosTimer: any = null;
 
 export async function renderProfessorPublicoPage(root: HTMLElement, linkUnico: string): Promise<void> {
   linkUnicoCache = linkUnico;
@@ -17,10 +19,33 @@ export async function renderProfessorPublicoPage(root: HTMLElement, linkUnico: s
   root.innerHTML = ProfessorPublicoTemplate.render({ professor: professorCache, aulas: aulasCache });
     setupReservarHandler();
     setupConsultaAgendamentoButton(linkUnico);
+    startAulasAutoRefresh(root);
   } catch (error) {
     console.error('[renderProfessorPublicoPage] erro:', error);
     root.innerHTML = ProfessorPublicoTemplate.render({ errorMessage: 'Erro ao carregar dados do professor.' });
   }
+}
+
+function startAulasAutoRefresh(root: HTMLElement) {
+  if (aulasRefreshTimer) clearInterval(aulasRefreshTimer);
+  aulasRefreshTimer = setInterval(async () => {
+    try {
+      const data = await ProfessorPublicoService.carregarPerfilEAulas(linkUnicoCache);
+      const novasAulas = data.aulas || [];
+      // Re-render apenas se houve mudança relevante
+      const before = JSON.stringify(aulasCache.map(a => ({ id: a.id, status: a.status, dataHora: a.dataHora, vagas_restantes: a.vagas_restantes })));
+      const after = JSON.stringify(novasAulas.map((a: any) => ({ id: a.id, status: a.status, dataHora: a.dataHora, vagas_restantes: a.vagas_restantes })));
+      if (before !== after) {
+        aulasCache = novasAulas;
+        professorCache = data.professor || professorCache;
+        root.innerHTML = ProfessorPublicoTemplate.render({ professor: professorCache, aulas: aulasCache });
+        setupReservarHandler();
+        setupConsultaAgendamentoButton(linkUnicoCache);
+      }
+    } catch (e) {
+      // silencioso
+    }
+  }, 15000);
 }
 
 function setupReservarHandler() {
@@ -104,6 +129,7 @@ async function handleReservaSubmit(event: Event, aulaId: string, modal: any) {
   root.innerHTML = ProfessorPublicoTemplate.render({ professor: professorCache, aulas: aulasCache, successMessage: 'Reserva realizada com sucesso!' });
         setupReservarHandler();
         setupConsultaAgendamentoButton(linkUnicoCache);
+        startAulasAutoRefresh(root);
       }
     } catch (e) {
       console.warn('[handleReservaSubmit] não foi possível recarregar aulas:', e);
@@ -247,10 +273,15 @@ function renderResultadoConsultaAgendamento(agendamentos: any[]) {
             ${(!agendamentos || agendamentos.length === 0)
               ? `<div class='alert alert-info'>Nenhum agendamento encontrado para os dados informados.</div>`
               : agendamentos.map(a => {
-                  // Badge de status da aula
+                  // Badge de status da aula (inclui destaque para REAGENDADA)
                   let statusAulaBadge = `<span class='badge bg-secondary'>${a.statusAula || '-'}</span>`;
-                  if ((a.statusAula || '').toLowerCase() === 'disponivel' || (a.statusAula || '').toLowerCase() === 'disponível') {
+                  const statusAulaLc = (a.statusAula || '').toLowerCase();
+                  if (statusAulaLc === 'disponivel' || statusAulaLc === 'disponível') {
                     statusAulaBadge = `<span class='badge bg-success'>${a.statusAula}</span>`;
+                  } else if (statusAulaLc === 'reagendada') {
+                    statusAulaBadge = `<span class='badge bg-warning text-dark'>Reagendada</span>`;
+                  } else if (statusAulaLc === 'cancelada') {
+                    statusAulaBadge = `<span class='badge bg-danger'>Cancelada</span>`;
                   }
                   // Data/hora formatada (mostrar string crua se não for possível converter)
                   let dataHoraRaw = a.dataHora || a.data_hora;
@@ -290,7 +321,7 @@ function renderResultadoConsultaAgendamento(agendamentos: any[]) {
                         <p class='mb-1'><b>Telefone:</b> ${a.professorTelefone || '-'}</p>
                       </div>
                       <div class='mb-2' style='min-width:180px;'>
-                        <p class='mb-1'><b>Data/Hora:</b> <span class='text-primary'>${dataHoraStr}</span></p>
+                        <p class='mb-1'><b>${statusAulaLc === 'reagendada' ? 'Nova Data/Hora' : 'Data/Hora'}:</b> <span class='text-primary'>${dataHoraStr}</span></p>
                         <p class='mb-1'><b>Status da Aula:</b> <span class='text-primary'>${a.statusAula || '-'}</span></p>
                         <p class='mb-1'><b>Status da Reserva:</b> ${statusReservaBadge}</p>
                         ${debugInfo}

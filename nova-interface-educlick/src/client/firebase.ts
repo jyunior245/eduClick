@@ -1,13 +1,14 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
+// Parcel substitui process.env.* em build e lê .env automaticamente no root do projeto.
 const firebaseConfig = {
-  apiKey: "AIzaSyDyfcBWFbR-nx3hxcZNjAILDJ8mHWCY5Ic",
-  authDomain: "educlick-681b9.firebaseapp.com",
-  projectId: "educlick-681b9",
-  storageBucket: "educlick-681b9.firebasestorage.app",
-  messagingSenderId: "1018429512087",
-  appId: "1:1018429512087:web:f9f42265310d3bc1168cd2"
+  apiKey: process.env.FIREBASE_API_KEY as string,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN as string,
+  projectId: process.env.FIREBASE_PROJECT_ID as string,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET as string,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID as string,
+  appId: process.env.FIREBASE_APP_ID as string,
 };
 
 const app = initializeApp(firebaseConfig);

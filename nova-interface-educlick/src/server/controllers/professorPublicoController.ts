@@ -185,7 +185,8 @@ export class ProfessorPublicoController {
           const matchTelefone = telefoneNorm ? normalizePhone(reservaTelefone) === telefoneNorm : true;
           const matchNome = nomeNorm ? String(reservaNome).trim().toLowerCase() === nomeNorm : true;
           const matchEmail = emailNorm ? String(reservaEmail).trim().toLowerCase() === emailNorm : true;
-          return matchTelefone && matchNome && matchEmail;
+          const notCanceled = String(reserva.status || '').toLowerCase() !== 'cancelada';
+          return matchTelefone && matchNome && matchEmail && notCanceled;
         }).map((reserva: any) => {
           // Preencher nome/email/telefone corretamente
           let nome = '';

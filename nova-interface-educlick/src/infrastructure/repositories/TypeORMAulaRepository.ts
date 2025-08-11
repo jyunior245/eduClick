@@ -1,4 +1,4 @@
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, Repository, In } from 'typeorm';
 import { Aula, StatusAula } from '../../server/entities/Aula';
 import { Professor } from '../../server/entities/Professor';
 
@@ -13,7 +13,7 @@ export class TypeORMAulaRepository {
     return this.repository.find({
       where: {
         professor: { id: professorId },
-        status: StatusAula.DISPONIVEL
+        status: In([StatusAula.DISPONIVEL, StatusAula.REAGENDADA])
       },
       relations: ['professor']
     });
