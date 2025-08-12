@@ -31,6 +31,21 @@ async function fetchComToken(url: string, options: RequestInit = {}): Promise<Re
   });
 }
 
+// Auth (sem forçar Content-Type JSON) para FormData ou uploads
+async function fetchComTokenSemJson(url: string, options: RequestInit = {}): Promise<Response> {
+  const token = localStorage.getItem('token');
+  // NÃO definir 'Content-Type' aqui para permitir que o browser defina o boundary do multipart
+  const headers: HeadersInit = {
+    ...(options.headers || {}),
+    'Authorization': `Bearer ${token}`
+  };
+  return fetch(url, {
+    ...options,
+    headers,
+    credentials: 'include'
+  });
+}
+
 // Auth
 export async function loginProfessor(email: string, senha: string): Promise<Response> {
   return fetch(`${API_BASE}/professores/login`, {
@@ -65,6 +80,16 @@ export function editarPerfilProfessor(data: PerfilFormData): Promise<Response> {
   return fetchComToken(`${API_BASE}/professores/me`, {
     method: 'PUT',
     body: JSON.stringify(data)
+  });
+}
+
+// Upload de foto de perfil (campo 'foto' no multipart/form-data)
+export function uploadFotoPerfilAPI(arquivo: File): Promise<Response> {
+  const form = new FormData();
+  form.append('foto', arquivo);
+  return fetchComTokenSemJson(`${API_BASE}/professores/me/foto`, {
+    method: 'POST',
+    body: form
   });
 }
 
@@ -133,7 +158,8 @@ export function getAulasPublicas(linkUnico: string): Promise<Response> {
 }
 
 export function reservarAulaPublica(linkUnico: string, aulaId: string, reserva: any): Promise<Response> {
-  return fetch(`${API_BASE}/professor-publico/${linkUnico}/reservar`, {
+  const url = `${API_BASE}/professor-publico/${encodeURIComponent(linkUnico)}/reservar?aulaId=${encodeURIComponent(aulaId)}`;
+  return fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(reserva)
@@ -179,6 +205,15 @@ export function cancelarReservaAPI(aulaId: string, nome: string, telefone: strin
   return fetchComToken(`${API_BASE}/aulas/${aulaId}/cancelar-reserva`, {
     method: 'POST',
     body: JSON.stringify({ nome, telefone })
+  });
+}
+
+// Reagendar aula (atualiza status e opcionalmente data/hora)
+export function reagendarAulaAPI(aulaId: string, novaDataHoraISO?: string): Promise<Response> {
+  const payload = novaDataHoraISO ? { nova_data_hora: novaDataHoraISO } : {};
+  return fetchComToken(`${API_BASE}/aulas/${aulaId}/reagendar`, {
+    method: 'PUT',
+    body: JSON.stringify(payload)
   });
 }
 
