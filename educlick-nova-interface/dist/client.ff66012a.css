@@ -1,219 +1,448 @@
 .dashboard-container {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.dashboard-container:before {
+  content: "";
+  pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  position: absolute;
+  inset: 0;
 }
 
 .dashboard-header {
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(20px);
+  padding: var(--space-lg) 0;
+  z-index: 10;
   background: #fffffff2;
-  border-bottom: 1px solid #0000001a;
-  padding: 1.5rem 0;
+  border-bottom: 1px solid #fff3;
+  position: relative;
+}
+
+.dashboard-header:before {
+  content: "";
+  background: linear-gradient(90deg, #0000, #ffffff4d, #0000);
+  height: 1px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
 }
 
 .dashboard-content {
-  padding: 2rem 0;
+  padding: var(--space-2xl) 0;
+  z-index: 5;
+  position: relative;
 }
 
 .link-publico-container {
+  border-radius: var(--radius-xl);
+  padding: var(--space-lg);
+  backdrop-filter: blur(10px);
+  margin-bottom: var(--space-xl);
   background: #ffffff1a;
   border: 1px solid #fff3;
-  border-radius: 8px;
-  padding: .75rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.link-publico-container:before {
+  content: "";
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  height: 3px;
+  transition: var(--transition-normal);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  transform: scaleX(0);
+}
+
+.link-publico-container:hover:before {
+  transform: scaleX(1);
 }
 
 .link-publico-input {
-  background: #ffffffe6;
-  border: 1px solid #0000001a;
-  border-radius: 6px;
+  border-radius: var(--radius-lg);
   font-family: Courier New, monospace;
-  font-size: .875rem;
+  font-size: var(--font-size-sm);
+  padding: var(--space-md) var(--space-lg);
+  transition: var(--transition-normal);
+  backdrop-filter: blur(10px);
+  background: #fffffff2;
+  border: 2px solid #ffffff4d;
+}
+
+.link-publico-input:focus {
+  border-color: var(--primary);
+  background: #fff;
+  box-shadow: 0 0 0 3px #6366f11a;
 }
 
 .aula-card {
-  backdrop-filter: blur(10px);
+  transition: var(--transition-normal);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(20px);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--space-lg);
   background: #fffffff2;
   border: none;
-  transition: all .3s;
-  box-shadow: 0 4px 6px #0000001a;
+  position: relative;
+  overflow: hidden;
+}
+
+.aula-card:before {
+  content: "";
+  background: linear-gradient(90deg, var(--primary), var(--accent), var(--info));
+  background-size: 200% 100%;
+  height: 4px;
+  animation: 3s infinite gradientShift;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
 }
 
 .aula-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px #00000026;
+  box-shadow: var(--shadow-2xl);
+  transform: translateY(-8px);
 }
 
 .aula-card .card-header {
-  color: #fff;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: var(--text-inverse);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding: var(--space-lg);
   border: none;
-  border-radius: 8px 8px 0 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.aula-card .card-header:before {
+  content: "";
+  transition: var(--transition-normal);
+  background: linear-gradient(45deg, #0000 30%, #ffffff1a 50%, #0000 70%);
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+}
+
+.aula-card:hover .card-header:before {
+  transform: translateX(100%);
 }
 
 .aula-card .card-body {
-  padding: 1.5rem;
+  padding: var(--space-xl);
+  background: #fffffffa;
 }
 
 .badge-disponivel {
-  color: #fff;
-  background: linear-gradient(135deg, #28a745, #20c997);
+  background: linear-gradient(135deg, var(--success), var(--success-light));
+  color: var(--text-inverse);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  box-shadow: var(--shadow-sm);
 }
 
 .badge-lotada {
-  color: #fff;
-  background: linear-gradient(135deg, #ffc107, #fd7e14);
+  background: linear-gradient(135deg, var(--warning), var(--warning-light));
+  color: var(--text-inverse);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  box-shadow: var(--shadow-sm);
 }
 
 .badge-cancelada {
-  color: #fff;
-  background: linear-gradient(135deg, #dc3545, #e83e8c);
+  background: linear-gradient(135deg, var(--danger), var(--danger-light));
+  color: var(--text-inverse);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  box-shadow: var(--shadow-sm);
 }
 
 .accordion-button {
-  color: #667eea;
-  background: #667eea1a;
-  border: 1px solid #667eea33;
-  font-weight: 600;
+  color: var(--primary);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  transition: var(--transition-normal);
+  background: #6366f11a;
+  border: 2px solid #6366f133;
+  position: relative;
+  overflow: hidden;
+}
+
+.accordion-button:before {
+  content: "";
+  opacity: 0;
+  transition: var(--transition-normal);
+  background: linear-gradient(135deg, #6366f10d, #06b6d40d);
+  position: absolute;
+  inset: 0;
+}
+
+.accordion-button:hover:before {
+  opacity: 1;
 }
 
 .accordion-button:not(.collapsed) {
-  color: #667eea;
-  box-shadow: none;
-  background: #667eea33;
+  color: var(--primary-dark);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
+  background: #6366f126;
 }
 
 .accordion-button:focus {
-  box-shadow: 0 0 0 .25rem #667eea40;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px #6366f140;
 }
 
 .accordion-body {
-  background: #f8f9facc;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  padding: var(--space-lg);
+  background: #f8f9fae6;
+  border: 2px solid #6366f133;
+  border-top: none;
 }
 
 .reserva-item {
-  background: #fffc;
-  border-left: 4px solid #667eea;
-  border-radius: 0 6px 6px 0;
-  margin-bottom: .5rem;
+  border-left: 4px solid var(--primary);
+  margin-bottom: var(--space-md);
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+  padding: var(--space-lg);
+  transition: var(--transition-normal);
+  background: #ffffffe6;
+  position: relative;
+  overflow: hidden;
+}
+
+.reserva-item:before {
+  content: "";
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  transition: var(--transition-normal);
+  background: linear-gradient(135deg, #6366f10d, #06b6d40d);
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 .reserva-item:hover {
-  background: #fffffff2;
+  box-shadow: var(--shadow-md);
+  background: #fffffffa;
+  transform: translateX(4px);
+}
+
+.reserva-item:hover:before {
+  opacity: 1;
 }
 
 .nav-tabs {
-  background: #ffffffe6;
-  border-bottom: 2px solid #667eea33;
-  border-radius: 8px 8px 0 0;
-  padding: 0 1rem;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding: 0 var(--space-lg);
+  backdrop-filter: blur(10px);
+  background: #fffffff2;
+  border-bottom: 3px solid #6366f133;
+  margin-bottom: 0;
 }
 
 .nav-tabs .nav-link {
-  color: #6c757d;
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+  padding: var(--space-lg) var(--space-xl);
+  transition: var(--transition-normal);
   border: none;
   border-radius: 0;
-  padding: 1rem 1.5rem;
-  font-weight: 500;
-  transition: all .3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-tabs .nav-link:before {
+  content: "";
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  height: 3px;
+  transition: var(--transition-normal);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  transform: scaleX(0);
 }
 
 .nav-tabs .nav-link:hover {
-  color: #667eea;
-  background: #667eea1a;
+  color: var(--primary);
+  background: #6366f10d;
   border: none;
 }
 
+.nav-tabs .nav-link:hover:before {
+  transform: scaleX(1);
+}
+
 .nav-tabs .nav-link.active {
-  color: #667eea;
-  background: #667eea1a;
-  border-bottom: 3px solid #667eea;
-  font-weight: 600;
+  color: var(--primary);
+  font-weight: var(--font-weight-semibold);
+  background: #6366f11a;
+  border: none;
+}
+
+.nav-tabs .nav-link.active:before {
+  transform: scaleX(1);
 }
 
 .tab-content {
-  background: #fffffff2;
-  border-radius: 0 0 8px 8px;
-  min-height: 400px;
-  padding: 2rem;
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  padding: var(--space-2xl);
+  min-height: 500px;
+  box-shadow: var(--shadow-lg);
+  background: #fffffffa;
+  border: 1px solid #6366f11a;
+  border-top: none;
 }
 
 .empty-state {
   text-align: center;
-  padding: 4rem 2rem;
+  padding: var(--space-3xl) var(--space-2xl);
+  position: relative;
+}
+
+.empty-state:before {
+  content: "";
+  z-index: -1;
+  background: radial-gradient(circle, #6366f11a 0%, #0000 70%);
+  border-radius: 50%;
+  width: 200px;
+  height: 200px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .empty-state .display-1 {
-  color: #667eea4d;
-  margin-bottom: 1rem;
+  color: #6366f14d;
+  margin-bottom: var(--space-lg);
+  font-size: var(--font-size-4xl);
 }
 
 .empty-state h4 {
-  color: #6c757d;
-  margin-bottom: 1rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-lg);
+  font-size: var(--font-size-xl);
 }
 
 .empty-state p {
-  color: #adb5bd;
-  font-size: 1.1rem;
+  color: var(--text-muted);
+  font-size: var(--font-size-lg);
+  max-width: 400px;
+  margin: 0 auto;
 }
 
 .calendario-container {
-  background: #ffffffe6;
-  border-radius: 8px;
-  padding: 1.5rem;
+  border-radius: var(--radius-xl);
+  padding: var(--space-xl);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(10px);
+  background: #fffffff2;
+  border: 1px solid #6366f11a;
 }
 
 .calendario-header {
+  margin-bottom: var(--space-xl);
+  padding-bottom: var(--space-lg);
+  border-bottom: 2px solid var(--border-secondary);
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
   display: flex;
 }
 
 .calendario-grid {
-  background: #dee2e6;
-  border-radius: 8px;
+  background: var(--border-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
   grid-template-columns: repeat(7, 1fr);
-  gap: 1px;
+  gap: 2px;
   display: grid;
   overflow: hidden;
 }
 
 .calendario-dia {
+  padding: var(--space-md);
+  min-height: 120px;
+  transition: var(--transition-normal);
   background: #fff;
   flex-direction: column;
-  min-height: 100px;
-  padding: 1rem;
   display: flex;
+  position: relative;
+  overflow: hidden;
+}
+
+.calendario-dia:hover {
+  background: var(--bg-secondary);
+  z-index: 1;
+  box-shadow: var(--shadow-md);
+  transform: scale(1.02);
 }
 
 .calendario-dia-header {
-  color: #495057;
-  margin-bottom: .5rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+  text-align: center;
+  font-size: var(--font-size-sm);
 }
 
 .calendario-dia-content {
+  font-size: var(--font-size-xs);
   flex: 1;
-  font-size: .875rem;
 }
 
 .calendario-aula {
-  background: #667eea1a;
-  border-left: 3px solid #667eea;
-  border-radius: 0 4px 4px 0;
-  margin-bottom: .25rem;
-  padding: .25rem .5rem;
-  font-size: .75rem;
+  border-left: 3px solid var(--primary);
+  padding: var(--space-xs) var(--space-sm);
+  margin-bottom: var(--space-xs);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  transition: var(--transition-normal);
+  background: linear-gradient(135deg, #6366f11a, #06b6d41a);
+}
+
+.calendario-aula:hover {
+  background: linear-gradient(135deg, #6366f133, #06b6d433);
+  transform: translateX(2px);
 }
 
 @media (width <= 768px) {
-  .dashboard-header, .dashboard-content {
-    padding: 1rem 0;
+  .dashboard-header {
+    padding: var(--space-md) 0;
+  }
+
+  .dashboard-content {
+    padding: var(--space-lg) 0;
   }
 
   .link-publico-container {
+    gap: var(--space-md);
+    padding: var(--space-md);
     flex-direction: column;
-    gap: .5rem;
   }
 
   .link-publico-input {
@@ -221,28 +450,102 @@
   }
 
   .nav-tabs {
+    padding: 0 var(--space-md);
     flex-wrap: wrap;
   }
 
   .nav-tabs .nav-link {
-    padding: .75rem 1rem;
-    font-size: .875rem;
+    padding: var(--space-md) var(--space-lg);
+    font-size: var(--font-size-sm);
   }
 
-  .tab-content, .aula-card .card-body {
-    padding: 1rem;
+  .tab-content {
+    padding: var(--space-lg);
+    min-height: 400px;
+  }
+
+  .aula-card .card-body, .calendario-container {
+    padding: var(--space-lg);
+  }
+
+  .calendario-dia {
+    min-height: 100px;
+    padding: var(--space-sm);
+  }
+
+  .empty-state {
+    padding: var(--space-2xl) var(--space-lg);
+  }
+
+  .empty-state .display-1 {
+    font-size: var(--font-size-3xl);
+  }
+}
+
+@media (width <= 480px) {
+  .calendario-grid {
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+  }
+
+  .calendario-dia {
+    min-height: 80px;
+    padding: var(--space-xs);
+  }
+
+  .calendario-dia-header {
+    font-size: var(--font-size-xs);
+  }
+
+  .calendario-aula {
+    padding: 2px 4px;
+    font-size: .7rem;
   }
 }
 
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(30px);
   }
 
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0%;
+  }
+
+  50% {
+    background-position: 100%;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 
@@ -274,25 +577,105 @@
   animation-delay: .6s;
 }
 
+.reserva-item {
+  animation: .5s ease-out slideInLeft;
+}
+
+.reserva-item:nth-child(odd) {
+  animation: .5s ease-out slideInRight;
+}
+
 .loading-spinner {
   justify-content: center;
   align-items: center;
-  min-height: 200px;
+  min-height: 300px;
   display: flex;
+  position: relative;
+}
+
+.loading-spinner:before {
+  content: "";
+  border: 4px solid #6366f11a;
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: 1s linear infinite spin;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .loading-spinner .spinner-border {
-  color: #667eea;
+  color: var(--primary);
+  width: 3rem;
+  height: 3rem;
 }
 
 .error-state {
   text-align: center;
-  color: #dc3545;
-  padding: 2rem;
+  padding: var(--space-2xl);
+  color: var(--danger);
+  border-radius: var(--radius-xl);
+  margin: var(--space-xl) 0;
+  background: #ef44440d;
+  border: 1px solid #ef444433;
 }
 
 .error-state .bi {
-  margin-bottom: 1rem;
-  font-size: 3rem;
+  font-size: var(--font-size-4xl);
+  margin-bottom: var(--space-lg);
+  color: var(--danger);
+}
+
+.error-state h4 {
+  color: var(--danger);
+  margin-bottom: var(--space-md);
+}
+
+.error-state p {
+  color: var(--text-secondary);
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, :before, :after {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+.aula-card:focus-within, .nav-tabs .nav-link:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.aula-card, .reserva-item, .calendario-dia {
+  will-change: transform;
+}
+
+@media (hover: hover) {
+  .aula-card:hover {
+    transform: translateY(-8px)scale(1.02);
+  }
+
+  .reserva-item:hover {
+    transform: translateX(4px)scale(1.01);
+  }
+
+  .calendario-dia:hover {
+    transform: scale(1.05);
+  }
+}
+
+.aula-card:active {
+  transform: translateY(-4px)scale(.98);
+}
+
+.btn:active {
+  transform: translateY(0)scale(.98);
 }
 /*# sourceMappingURL=client.ff66012a.css.map */

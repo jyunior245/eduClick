@@ -1,3 +1,12 @@
+// Importações de CSS moderno
+import '../presentation/views/styles/main.css';
+import './styles/components/typography.css';
+import './styles/components/modern-components.css';
+import './styles/components/buttons.css';
+import './styles/components/forms.css';
+import './styles/components/login.css';
+import './styles/components/cadastro.css';
+import './styles/components/dashboard.css';
 import '../presentation/views/styles/cadastro.css';
 import { renderLoginPage } from './pages/LoginPage';
 import { renderCadastroPage } from './pages/CadastroPage';

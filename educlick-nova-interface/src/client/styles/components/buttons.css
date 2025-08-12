@@ -1,46 +1,580 @@
-/* Botão Sair customizado */
+/* ===== BOTÕES MODERNOS ===== */
+
+/* Botão Sair moderno */
 #btn-logout {
-  border: 2px solid #dc3545;
-  background: #ff0303;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(220,53,69,0.08);
-  font-weight: 600;
-  transition: background 0.2s, color 0.2s;
-  padding: 2px 12px;
-  min-width: 60px;
+  border: 2px solid var(--danger);
+  background: var(--danger);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-sm);
+  font-weight: var(--font-weight-semibold);
+  transition: var(--transition-normal);
+  padding: var(--space-sm) var(--space-md);
+  min-width: 80px;
+  border-radius: var(--radius-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+#btn-logout::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: var(--transition-normal);
 }
 
 #btn-logout:hover {
-  background: #dc3545 !important;
-  color: #fff !important;
-  border-color: #dc3545 !important;
+  background: var(--danger-light) !important;
+  color: var(--text-inverse) !important;
+  border-color: var(--danger-light) !important;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
-/* Botões de ação em cards */
+#btn-logout:hover::before {
+  left: 100%;
+}
+
+#btn-logout:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Botões de ação em cards modernos */
 .card .btn-action {
-  transition: all 0.2s ease;
+  transition: var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.card .btn-action::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: var(--transition-normal);
 }
 
 .card .btn-action:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
-/* Botões de dropdown */
+.card .btn-action:hover::before {
+  left: 100%;
+}
+
+.card .btn-action:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Botões de dropdown modernos */
+.dropdown-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
 .dropdown-toggle::after {
-  margin-left: 0.5em;
+  margin-left: var(--space-sm);
+  transition: var(--transition-normal);
+  border-top-color: currentColor;
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  border-left-color: transparent;
 }
 
-/* Botões de modal */
+.dropdown-toggle:hover::after {
+  transform: rotate(180deg);
+}
+
+.dropdown-toggle.show::after {
+  transform: rotate(180deg);
+}
+
+/* Botões de modal modernos */
 .modal-footer .btn {
-  min-width: 100px;
+  min-width: 120px;
+  position: relative;
+  overflow: hidden;
 }
 
-/* Botões de formulário */
+.modal-footer .btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: var(--transition-normal);
+}
+
+.modal-footer .btn:hover::before {
+  left: 100%;
+}
+
+/* Botões de formulário modernos */
 .form-actions .btn {
-  margin-right: 0.5rem;
+  margin-right: var(--space-md);
+  position: relative;
+  overflow: hidden;
 }
 
 .form-actions .btn:last-child {
   margin-right: 0;
-} 
+}
+
+.form-actions .btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: var(--transition-normal);
+}
+
+.form-actions .btn:hover::before {
+  left: 100%;
+}
+
+/* Botões com ícones modernos */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  min-width: 44px;
+  height: 44px;
+  padding: var(--space-sm);
+  border-radius: var(--radius-lg);
+  transition: var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-icon::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: var(--transition-normal);
+}
+
+.btn-icon:hover::before {
+  left: 100%;
+}
+
+.btn-icon:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-icon:active {
+  transform: translateY(0) scale(0.95);
+}
+
+/* Botões de grupo modernos */
+.btn-group {
+  display: inline-flex;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-normal);
+}
+
+.btn-group:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.btn-group .btn {
+  border-radius: 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-group .btn:first-child {
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+}
+
+.btn-group .btn:last-child {
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+  border-right: none;
+}
+
+.btn-group .btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: var(--transition-normal);
+}
+
+.btn-group .btn:hover::before {
+  left: 100%;
+}
+
+/* Botões de toggle modernos */
+.btn-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 32px;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--border-primary);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: var(--transition-normal);
+  overflow: hidden;
+}
+
+.btn-toggle::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 24px;
+  height: 24px;
+  background: var(--text-secondary);
+  border-radius: 50%;
+  transition: var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-toggle.active {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-toggle.active::before {
+  transform: translateX(28px);
+  background: var(--text-inverse);
+}
+
+.btn-toggle:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.btn-toggle:active::before {
+  transform: scale(0.9);
+}
+
+/* Botões de loading modernos */
+.btn-loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.btn-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.btn-loading .btn-text {
+  opacity: 0;
+}
+
+/* Botões de progresso modernos */
+.btn-progress {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-progress::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.3);
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+.btn-progress[data-progress="25"]::after { width: 25%; }
+.btn-progress[data-progress="50"]::after { width: 50%; }
+.btn-progress[data-progress="75"]::after { width: 75%; }
+.btn-progress[data-progress="100"]::after { width: 100%; }
+
+/* Botões de estado modernos */
+.btn-success {
+  background: linear-gradient(135deg, var(--success), var(--success-light));
+  color: var(--text-inverse);
+  border: 2px solid var(--success);
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, var(--success-light), var(--success));
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, var(--warning), var(--warning-light));
+  color: var(--text-inverse);
+  border: 2px solid var(--warning);
+}
+
+.btn-warning:hover {
+  background: linear-gradient(135deg, var(--warning-light), var(--warning));
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, var(--danger), var(--danger-light));
+  color: var(--text-inverse);
+  border: 2px solid var(--danger);
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, var(--danger-light), var(--danger));
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-info {
+  background: linear-gradient(135deg, var(--info), var(--info-light));
+  color: var(--text-inverse);
+  border: 2px solid var(--info);
+}
+
+.btn-info:hover {
+  background: linear-gradient(135deg, var(--info-light), var(--info));
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Botões de tamanho modernos */
+.btn-xs {
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--font-size-xs);
+  min-height: 28px;
+  border-radius: var(--radius-md);
+}
+
+.btn-sm {
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-sm);
+  min-height: 36px;
+  border-radius: var(--radius-md);
+}
+
+.btn-md {
+  padding: var(--space-md) var(--space-lg);
+  font-size: var(--font-size-base);
+  min-height: 44px;
+  border-radius: var(--radius-lg);
+}
+
+.btn-lg {
+  padding: var(--space-lg) var(--space-xl);
+  font-size: var(--font-size-lg);
+  min-height: 52px;
+  border-radius: var(--radius-lg);
+}
+
+.btn-xl {
+  padding: var(--space-xl) var(--space-2xl);
+  font-size: var(--font-size-xl);
+  min-height: 60px;
+  border-radius: var(--radius-xl);
+}
+
+/* Botões de outline modernos */
+.btn-outline-primary {
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+}
+
+.btn-outline-primary:hover {
+  background: var(--primary);
+  color: var(--text-inverse);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-outline-success {
+  background: transparent;
+  color: var(--success);
+  border: 2px solid var(--success);
+}
+
+.btn-outline-success:hover {
+  background: var(--success);
+  color: var(--text-inverse);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-outline-warning {
+  background: transparent;
+  color: var(--warning);
+  border: 2px solid var(--warning);
+}
+
+.btn-outline-warning:hover {
+  background: var(--warning);
+  color: var(--text-inverse);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-outline-danger {
+  background: transparent;
+  color: var(--danger);
+  border: 2px solid var(--danger);
+}
+
+.btn-outline-danger:hover {
+  background: var(--danger);
+  color: var(--text-inverse);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Botões de texto modernos */
+.btn-text {
+  background: transparent;
+  color: var(--primary);
+  border: none;
+  padding: var(--space-sm) var(--space-md);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: var(--transition-normal);
+}
+
+.btn-text:hover {
+  color: var(--primary-dark);
+  background: rgba(99, 102, 241, 0.05);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+/* Botões de link modernos */
+.btn-link {
+  background: transparent;
+  color: var(--primary);
+  border: none;
+  padding: var(--space-sm) var(--space-md);
+  text-decoration: none;
+  transition: var(--transition-normal);
+  position: relative;
+}
+
+.btn-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  transform: scaleX(0);
+  transition: var(--transition-normal);
+}
+
+.btn-link:hover {
+  color: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.btn-link:hover::after {
+  transform: scaleX(1);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .btn-group {
+    flex-direction: column;
+  }
+  
+  .btn-group .btn {
+    border-radius: 0;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .btn-group .btn:first-child {
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+  
+  .btn-group .btn:last-child {
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    border-bottom: none;
+  }
+  
+  .form-actions .btn {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: var(--space-sm);
+  }
+  
+  .form-actions .btn:last-child {
+    margin-bottom: 0;
+  }
+}
+
+/* Estados de foco melhorados */
+.btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Melhorias de acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .btn::before,
+  .btn-toggle::before {
+    transition: none;
+  }
+}
+
+/* Estados de pressão */
+.btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-toggle:active::before {
+  transform: scale(0.9);
+}
+
+/* Animações de entrada */
+.btn {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.btn:nth-child(1) { animation-delay: 0.1s; }
+.btn:nth-child(2) { animation-delay: 0.2s; }
+.btn:nth-child(3) { animation-delay: 0.3s; }
+.btn:nth-child(4) { animation-delay: 0.4s; }
+.btn:nth-child(5) { animation-delay: 0.5s; } 

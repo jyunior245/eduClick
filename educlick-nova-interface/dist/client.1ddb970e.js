@@ -160,9 +160,9 @@
       });
     }
   }
-})({"cDij9":[function(require,module,exports,__globalThis) {
+})({"a7Hfu":[function(require,module,exports,__globalThis) {
 var global = arguments[3];
-var HMR_HOST = "localhost";
+var HMR_HOST = null;
 var HMR_PORT = null;
 var HMR_SERVER_PORT = 1234;
 var HMR_SECURE = false;
@@ -667,7 +667,16 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 }
 
 },{}],"hA1Na":[function(require,module,exports,__globalThis) {
-var _cadastroCss = require("../presentation/views/styles/cadastro.css");
+// Importações de CSS moderno
+var _mainCss = require("../presentation/views/styles/main.css");
+var _typographyCss = require("./styles/components/typography.css");
+var _modernComponentsCss = require("./styles/components/modern-components.css");
+var _buttonsCss = require("./styles/components/buttons.css");
+var _formsCss = require("./styles/components/forms.css");
+var _loginCss = require("./styles/components/login.css");
+var _cadastroCss = require("./styles/components/cadastro.css");
+var _dashboardCss = require("./styles/components/dashboard.css");
+var _cadastroCss1 = require("../presentation/views/styles/cadastro.css");
 var _loginPage = require("./pages/LoginPage");
 var _cadastroPage = require("./pages/CadastroPage");
 var _dashboardProfessorPage = require("./pages/DashboardProfessorPage");
@@ -719,7 +728,7 @@ window.addEventListener('popstate', rotear);
 window.addEventListener('DOMContentLoaded', rotear);
 window.logout = logout;
 
-},{"../presentation/views/styles/cadastro.css":"792VZ","./pages/LoginPage":"bYZC3","./pages/CadastroPage":"ehlZb","./pages/DashboardProfessorPage":"j9ewb","./pages/ProfessorPublicoPage":"eEbb5","./pages/AgendamentoPage":"hxvF1","./pages/EditarPerfilProfessorPage":"5FGHL","./services/api":"kfpAV","./pages/HomePage":"5g5Lr","./utils/logger":"9hvW2","./services/CadastroService":"4eAyM","../infrastructure/auth/LocalAuthProvider":"e7nW9","./services/LoginService":"4sEqg"}],"792VZ":[function() {},{}],"bYZC3":[function(require,module,exports,__globalThis) {
+},{"../presentation/views/styles/cadastro.css":"792VZ","./pages/LoginPage":"bYZC3","./pages/CadastroPage":"ehlZb","./pages/DashboardProfessorPage":"j9ewb","./pages/ProfessorPublicoPage":"eEbb5","./pages/AgendamentoPage":"hxvF1","./pages/EditarPerfilProfessorPage":"5FGHL","./services/api":"kfpAV","./pages/HomePage":"5g5Lr","./utils/logger":"9hvW2","./services/CadastroService":"4eAyM","../infrastructure/auth/LocalAuthProvider":"e7nW9","./services/LoginService":"4sEqg","../presentation/views/styles/main.css":"5TNpu","./styles/components/typography.css":"7LcDk","./styles/components/modern-components.css":"hMFju","./styles/components/buttons.css":"hRuxY","./styles/components/forms.css":"bpxp3","./styles/components/login.css":"aLkh7","./styles/components/cadastro.css":"3bNhw","./styles/components/dashboard.css":"bHuta"}],"792VZ":[function() {},{}],"bYZC3":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "renderLoginPage", ()=>renderLoginPage);
@@ -838,36 +847,36 @@ parcelHelpers.export(exports, "LoginTemplate", ()=>LoginTemplate);
 class LoginTemplate {
     static render(params = {}) {
         return `
-      <div class="container py-5">
-        <div class="row justify-content-center">
-          <div class="col-md-6 col-lg-5">
-            <div class="card shadow-sm">
-              <div class="card-body p-4">
-                <h2 class="mb-4 fw-bold text-center">Entrar</h2>
-                ${params.errorMessage ? `<div class='alert alert-danger'>${params.errorMessage}</div>` : ''}
-                <form id="form-login" onsubmit="${params.onSubmit || 'handleLoginSubmit'}(event)">
-                  <div class="mb-3">
-                    <label for="email" class="form-label">E-mail</label>
-                    <input type="email" class="form-control" id="email" name="email" required>
-                  </div>
-                  <div class="mb-3">
-                    <label for="senha" class="form-label">Senha</label>
-                    <input type="password" class="form-control" id="senha" name="senha" required>
-                  </div>
-                  <button type="submit" class="btn btn-primary w-100">Entrar</button>
-                </form>
-                <div class="mt-3">
-                  <button id="btnGoogleLogin" class="btn btn-outline-danger w-100">
-                    <i class="bi bi-google me-1"></i> Continuar com Google
-                  </button>
-                </div>
-                <div class="mt-3 text-center">
-                  <a href="/cadastro">N\xe3o tem conta? Cadastre-se</a>
-                </div>
-                <div class="mt-2 text-center">
-                  <a href="#" id="linkForgotPassword">Esqueci minha senha</a>
-                </div>
-              </div>
+      <div class="login-container">
+        <div class="login-card">
+          <div class="login-header">
+            <h2 class="login-title">Entrar</h2>
+            <p class="login-subtitle">Acesse sua conta EduClick</p>
+          </div>
+          
+          ${params.errorMessage ? `<div class='alert alert-danger'>${params.errorMessage}</div>` : ''}
+          
+          <form id="form-login" class="login-form" onsubmit="${params.onSubmit || 'handleLoginSubmit'}(event)">
+            <div class="form-group">
+              <label for="email" class="form-label">E-MAIL</label>
+              <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+              <label for="senha" class="form-label">SENHA</label>
+              <input type="password" class="form-control" id="senha" name="senha" required>
+            </div>
+            <button type="submit" class="login-btn">Entrar</button>
+          </form>
+          
+          <div class="login-links">
+            <button id="btnGoogleLogin" class="btn btn-secondary">
+              <i class="bi bi-google me-1"></i> Continuar com Google
+            </button>
+            <div class="mt-3">
+              <a href="/cadastro">N\xe3o tem conta? Cadastre-se</a>
+            </div>
+            <div class="mt-2">
+              <a href="#" id="linkForgotPassword">Esqueci minha senha</a>
             </div>
           </div>
         </div>
@@ -1080,7 +1089,7 @@ async function getPublicFcmToken() {
         const perm = await Notification.requestPermission();
         if (perm !== 'granted') return null;
         const swReg = await ensureServiceWorker();
-        const vapidKey = "BPb390jq3M7f7SuhCY_La2NAdUddEt79oOZwf-KAr3_zo9MOTbDmvyuRXaYSR1oHkwaG4ZeWrsy6GDduWbk9QoM";
+        const vapidKey = undefined;
         try {
             const token = await (0, _firebase.getFcmToken)((0, _firebase.messaging), {
                 vapidKey,
@@ -1144,7 +1153,7 @@ async function setupPushAfterLogin(idToken) {
         const swReg = await ensureServiceWorker();
         if (!swReg) console.warn("[FCM] Service Worker n\xe3o registrado");
         // Obter token com VAPID key
-        const vapidKey = "BPb390jq3M7f7SuhCY_La2NAdUddEt79oOZwf-KAr3_zo9MOTbDmvyuRXaYSR1oHkwaG4ZeWrsy6GDduWbk9QoM";
+        const vapidKey = undefined;
         if (!vapidKey) console.warn('[FCM] FIREBASE_VAPID_KEY ausente no .env');
         let token = null;
         try {
@@ -1226,12 +1235,12 @@ var _auth = require("firebase/auth");
 var _messaging = require("firebase/messaging");
 // Parcel substitui process.env.* em build e lê .env automaticamente no root do projeto.
 const firebaseConfig = {
-    apiKey: "AIzaSyDyfcBWFbR-nx3hxcZNjAILDJ8mHWCY5Ic",
-    authDomain: "educlick-681b9.firebaseapp.com",
-    projectId: "educlick-681b9",
-    storageBucket: "educlick-681b9.appspot.com",
-    messagingSenderId: "1018429512087",
-    appId: "1:1018429512087:web:f9f42265310d3bc1168cd2"
+    apiKey: undefined,
+    authDomain: undefined,
+    projectId: undefined,
+    storageBucket: undefined,
+    messagingSenderId: undefined,
+    appId: undefined
 };
 const app = (0, _app.initializeApp)(firebaseConfig);
 const auth = (0, _auth.getAuth)(app);
@@ -17274,41 +17283,41 @@ parcelHelpers.export(exports, "CadastroTemplate", ()=>CadastroTemplate);
 class CadastroTemplate {
     static render(params = {}) {
         return `
-      <div class="container py-5">
-        <div class="row justify-content-center">
-          <div class="col-md-6 col-lg-5">
-            <div class="card shadow-sm">
-              <div class="card-body p-4">
-                <h2 class="mb-4 fw-bold text-center">Criar Conta</h2>
-                ${params.errorMessage ? `<div class='alert alert-danger'>${params.errorMessage}</div>` : ''}
-                <form id="form-cadastro" onsubmit="${params.onSubmit || 'handleCadastroSubmit'}(event)">
-                  <div class="mb-3">
-                    <label for="nome" class="form-label">Nome</label>
-                    <input type="text" class="form-control" id="nome" name="nome" required>
-                  </div>
-                  <div class="mb-3">
-                    <label for="email" class="form-label">E-mail</label>
-                    <input type="email" class="form-control" id="email" name="email" required>
-                  </div>
-                  <div class="mb-3">
-                    <label for="senha" class="form-label">Senha</label>
-                    <input type="password" class="form-control" id="senha" name="senha" required minlength="6">
-                  </div>
-                  <div class="mb-3">
-                    <label for="confirmarSenha" class="form-label">Confirmar Senha</label>
-                    <input type="password" class="form-control" id="confirmarSenha" name="confirmarSenha" required minlength="6">
-                  </div>
-                  <button type="submit" class="btn btn-primary w-100">Cadastrar</button>
-                </form>
-                <div class="mt-3">
-                  <button id="btnGoogleCadastro" class="btn btn-outline-danger w-100">
-                    <i class="bi bi-google me-1"></i> Cadastrar com Google
-                  </button>
-                </div>
-                <div class="mt-3 text-center">
-                  <a href="/login">J\xe1 tem conta? Entrar</a>
-                </div>
-              </div>
+      <div class="cadastro-container">
+        <div class="cadastro-card">
+          <div class="cadastro-header">
+            <h2 class="cadastro-title">Criar Conta</h2>
+            <p class="cadastro-subtitle">Junte-se ao EduClick</p>
+          </div>
+          
+          ${params.errorMessage ? `<div class='alert alert-danger'>${params.errorMessage}</div>` : ''}
+          
+          <form id="form-cadastro" class="cadastro-form" onsubmit="${params.onSubmit || 'handleCadastroSubmit'}(event)">
+            <div class="form-group">
+              <label for="nome" class="form-label">NOME</label>
+              <input type="text" class="form-control" id="nome" name="nome" required>
+            </div>
+            <div class="form-group">
+              <label for="email" class="form-label">E-MAIL</label>
+              <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+              <label for="senha" class="form-label">SENHA</label>
+              <input type="password" class="form-control" id="senha" name="senha" required minlength="6">
+            </div>
+            <div class="form-group">
+              <label for="confirmarSenha" class="form-label">CONFIRMAR SENHA</label>
+              <input type="password" class="form-control" id="confirmarSenha" name="confirmarSenha" required minlength="6">
+            </div>
+            <button type="submit" class="cadastro-btn">Cadastrar</button>
+          </form>
+          
+          <div class="cadastro-links">
+            <button id="btnGoogleCadastro" class="btn btn-secondary">
+              <i class="bi bi-google me-1"></i> Cadastrar com Google
+            </button>
+            <div class="mt-3">
+              <a href="/login">J\xe1 tem conta? Entrar</a>
             </div>
           </div>
         </div>
@@ -18163,7 +18172,7 @@ class DashboardTemplate {
     }
 }
 
-},{"./BaseTemplate":"g6D83","../components/ui/Button":"90wAd","../components/ui/AulaCard":"22vsH","../components/modals/AulaModal":"59Ubm","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT","../components/modals/AulaDetailModal":"4vNXe"}],"g6D83":[function(require,module,exports,__globalThis) {
+},{"./BaseTemplate":"g6D83","../components/ui/Button":"90wAd","../components/ui/AulaCard":"22vsH","../components/modals/AulaModal":"59Ubm","../components/modals/AulaDetailModal":"4vNXe","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"g6D83":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "BaseTemplate", ()=>BaseTemplate);
@@ -36027,6 +36036,6 @@ class Usuario {
     }
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}]},["cDij9","hA1Na"], "hA1Na", "parcelRequired50e", {}, "./", "/")
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"5TNpu":[function() {},{}],"7LcDk":[function() {},{}],"hMFju":[function() {},{}],"hRuxY":[function() {},{}],"bpxp3":[function() {},{}],"aLkh7":[function() {},{}],"3bNhw":[function() {},{}],"bHuta":[function() {},{}]},["a7Hfu","hA1Na"], "hA1Na", "parcelRequired50e", {}, "./", "/")
 
 //# sourceMappingURL=client.1ddb970e.js.map

@@ -1,0 +1,440 @@
+/* ===== TIPOGRAFIA MODERNA ===== */
+
+/* Importação de fontes modernas */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+/* ===== HIERARQUIA DE TIPOGRAFIA ===== */
+
+/* Títulos principais */
+.display-1 {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: var(--space-lg);
+}
+
+.display-2 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  margin-bottom: var(--space-md);
+}
+
+.display-3 {
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.3;
+  color: var(--text-primary);
+  margin-bottom: var(--space-md);
+}
+
+/* Títulos de seção */
+.heading-1 {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+  color: var(--text-primary);
+  margin-bottom: var(--space-lg);
+}
+
+.heading-2 {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.3;
+  color: var(--text-primary);
+  margin-bottom: var(--space-md);
+}
+
+.heading-3 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.4;
+  color: var(--text-primary);
+  margin-bottom: var(--space-md);
+}
+
+.heading-4 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.4;
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.heading-5 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.5;
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.heading-6 {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.5;
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Texto de corpo */
+.body-large {
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-relaxed);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-md);
+}
+
+.body-medium {
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-md);
+}
+
+.body-small {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+  color: var(--text-muted);
+  margin-bottom: var(--space-sm);
+}
+
+.body-xs {
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+  color: var(--text-muted);
+  margin-bottom: var(--space-xs);
+}
+
+/* Texto de destaque */
+.lead {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-relaxed);
+  color: var(--text-primary);
+  margin-bottom: var(--space-lg);
+}
+
+.lead-large {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.4;
+  color: var(--text-primary);
+  margin-bottom: var(--space-xl);
+}
+
+/* Texto de código */
+.code {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: var(--font-size-sm);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-primary);
+}
+
+.code-block {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: var(--font-size-sm);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-primary);
+  overflow-x: auto;
+  margin: var(--space-lg) 0;
+}
+
+/* ===== UTILITÁRIOS DE TIPOGRAFIA ===== */
+
+/* Alinhamento de texto */
+.text-left { text-align: left; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-justify { text-align: justify; }
+
+/* Transformação de texto */
+.text-uppercase { text-transform: uppercase; }
+.text-lowercase { text-transform: lowercase; }
+.text-capitalize { text-transform: capitalize; }
+
+/* Decoração de texto */
+.text-decoration-none { text-decoration: none; }
+.text-decoration-underline { text-decoration: underline; }
+.text-decoration-line-through { text-decoration: line-through; }
+
+/* Peso da fonte */
+.font-light { font-weight: 300; }
+.font-normal { font-weight: 400; }
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+.font-extrabold { font-weight: 800; }
+.font-black { font-weight: 900; }
+
+/* Estilo da fonte */
+.font-normal { font-style: normal; }
+.font-italic { font-style: italic; }
+
+/* Altura da linha */
+.leading-tight { line-height: 1.25; }
+.leading-normal { line-height: 1.5; }
+.leading-relaxed { line-height: 1.75; }
+.leading-loose { line-height: 2; }
+
+/* Espaçamento entre letras */
+.tracking-tighter { letter-spacing: -0.05em; }
+.tracking-tight { letter-spacing: -0.025em; }
+.tracking-normal { letter-spacing: 0em; }
+.tracking-wide { letter-spacing: 0.025em; }
+.tracking-wider { letter-spacing: 0.05em; }
+.tracking-widest { letter-spacing: 0.1em; }
+
+/* Cores de texto */
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted { color: var(--text-muted); }
+.text-inverse { color: var(--text-inverse); }
+
+.text-success { color: var(--success); }
+.text-warning { color: var(--warning); }
+.text-danger { color: var(--danger); }
+.text-info { color: var(--info); }
+
+/* ===== TIPOGRAFIA RESPONSIVA ===== */
+
+/* Tamanhos responsivos */
+.text-xs { font-size: var(--font-size-xs); }
+.text-sm { font-size: var(--font-size-sm); }
+.text-base { font-size: var(--font-size-base); }
+.text-lg { font-size: var(--font-size-lg); }
+.text-xl { font-size: var(--font-size-xl); }
+.text-2xl { font-size: var(--font-size-2xl); }
+.text-3xl { font-size: var(--font-size-3xl); }
+.text-4xl { font-size: var(--font-size-4xl); }
+
+/* Breakpoints responsivos */
+@media (max-width: 768px) {
+  .text-xs-mobile { font-size: var(--font-size-xs); }
+  .text-sm-mobile { font-size: var(--font-size-sm); }
+  .text-base-mobile { font-size: var(--font-size-base); }
+  .text-lg-mobile { font-size: var(--font-size-lg); }
+  .text-xl-mobile { font-size: var(--font-size-xl); }
+  .text-2xl-mobile { font-size: var(--font-size-2xl); }
+  .text-3xl-mobile { font-size: var(--font-size-3xl); }
+  .text-4xl-mobile { font-size: var(--font-size-4xl); }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .text-xs-tablet { font-size: var(--font-size-xs); }
+  .text-sm-tablet { font-size: var(--font-size-sm); }
+  .text-base-tablet { font-size: var(--font-size-base); }
+  .text-lg-tablet { font-size: var(--font-size-lg); }
+  .text-xl-tablet { font-size: var(--font-size-xl); }
+  .text-2xl-tablet { font-size: var(--font-size-2xl); }
+  .text-3xl-tablet { font-size: var(--font-size-3xl); }
+  .text-4xl-tablet { font-size: var(--font-size-4xl); }
+}
+
+@media (min-width: 1025px) {
+  .text-xs-desktop { font-size: var(--font-size-xs); }
+  .text-sm-desktop { font-size: var(--font-size-sm); }
+  .text-base-desktop { font-size: var(--font-size-base); }
+  .text-lg-desktop { font-size: var(--font-size-lg); }
+  .text-xl-desktop { font-size: var(--font-size-xl); }
+  .text-2xl-desktop { font-size: var(--font-size-2xl); }
+  .text-3xl-desktop { font-size: var(--font-size-3xl); }
+  .text-4xl-desktop { font-size: var(--font-size-4xl); }
+}
+
+/* ===== TIPOGRAFIA ESPECIALIZADA ===== */
+
+/* Texto de citação */
+.quote {
+  font-size: var(--font-size-lg);
+  font-style: italic;
+  line-height: var(--line-height-relaxed);
+  color: var(--text-secondary);
+  border-left: 4px solid var(--primary);
+  padding-left: var(--space-lg);
+  margin: var(--space-xl) 0;
+  position: relative;
+}
+
+.quote::before {
+  content: '"';
+  font-size: 4rem;
+  color: var(--primary);
+  position: absolute;
+  top: -1rem;
+  left: -1rem;
+  opacity: 0.3;
+}
+
+/* Texto de destaque */
+.highlight {
+  background: linear-gradient(120deg, rgba(99, 102, 241, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Texto truncado */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.truncate-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.truncate-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ===== ANIMAÇÕES DE TEXTO ===== */
+
+/* Texto com digitação */
+.typewriter {
+  overflow: hidden;
+  border-right: 2px solid var(--primary);
+  white-space: nowrap;
+  animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent; }
+  50% { border-color: var(--primary); }
+}
+
+/* Texto com fade in */
+.text-fade-in {
+  opacity: 0;
+  animation: textFadeIn 0.6s ease-out forwards;
+}
+
+@keyframes textFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Texto com slide in */
+.text-slide-in-left {
+  opacity: 0;
+  transform: translateX(-50px);
+  animation: textSlideInLeft 0.6s ease-out forwards;
+}
+
+@keyframes textSlideInLeft {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.text-slide-in-right {
+  opacity: 0;
+  transform: translateX(50px);
+  animation: textSlideInRight 0.6s ease-out forwards;
+}
+
+@keyframes textSlideInRight {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ===== MELHORIAS DE LEGIBILIDADE ===== */
+
+/* Melhor contraste para texto pequeno */
+.text-sm, .text-xs {
+  font-weight: var(--font-weight-medium);
+}
+
+/* Espaçamento melhorado para listas */
+ul, ol {
+  line-height: var(--line-height-relaxed);
+  margin-bottom: var(--space-md);
+}
+
+li {
+  margin-bottom: var(--space-xs);
+}
+
+/* Links com melhor legibilidade */
+a {
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+}
+
+/* Melhor legibilidade para texto longo */
+p {
+  max-width: 65ch;
+  margin-bottom: var(--space-md);
+}
+
+/* ===== ACESSIBILIDADE ===== */
+
+/* Suporte para preferências de movimento reduzido */
+@media (prefers-reduced-motion: reduce) {
+  .typewriter,
+  .text-fade-in,
+  .text-slide-in-left,
+  .text-slide-in-right {
+    animation: none;
+  }
+}
+
+/* Suporte para modo escuro */
+@media (prefers-color-scheme: dark) {
+  .text-primary { color: #f8fafc; }
+  .text-secondary { color: #cbd5e1; }
+  .text-muted { color: #94a3b8; }
+  
+  .code, .code-block {
+    background: #1e293b;
+    color: #e2e8f0;
+    border-color: #334155;
+  }
+}
+
+/* Suporte para alto contraste */
+@media (prefers-contrast: high) {
+  .text-secondary { color: var(--text-primary); }
+  .text-muted { color: var(--text-primary); }
+  
+  .code, .code-block {
+    border-width: 2px;
+  }
+}

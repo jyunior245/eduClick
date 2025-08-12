@@ -1,234 +1,468 @@
-/* Dashboard Styles */
+/* ===== DASHBOARD MODERNO ===== */
 .dashboard-container {
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  overflow-x: hidden;
+}
+
+.dashboard-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
 }
 
 .dashboard-header {
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  padding: 1.5rem 0;
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding: var(--space-lg) 0;
+  position: relative;
+  z-index: 10;
+}
+
+.dashboard-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
 }
 
 .dashboard-content {
-  padding: 2rem 0;
+  padding: var(--space-2xl) 0;
+  position: relative;
+  z-index: 5;
 }
 
-/* Link público styling */
+/* ===== LINK PÚBLICO MODERNO ===== */
 .link-publico-container {
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 0.75rem;
+  border-radius: var(--radius-xl);
+  padding: var(--space-lg);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  margin-bottom: var(--space-xl);
+  position: relative;
+  overflow: hidden;
+}
+
+.link-publico-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  transform: scaleX(0);
+  transition: var(--transition-normal);
+}
+
+.link-publico-container:hover::before {
+  transform: scaleX(1);
 }
 
 .link-publico-input {
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 6px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.875rem;
-}
-
-/* Cards de aula */
-.aula-card {
-  transition: all 0.3s ease;
-  border: none;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   background: rgba(255, 255, 255, 0.95);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-lg);
+  font-family: 'Courier New', monospace;
+  font-size: var(--font-size-sm);
+  padding: var(--space-md) var(--space-lg);
+  transition: var(--transition-normal);
   backdrop-filter: blur(10px);
 }
 
+.link-publico-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  background: rgba(255, 255, 255, 1);
+}
+
+/* ===== CARDS DE AULA MODERNOS ===== */
+.aula-card {
+  transition: var(--transition-normal);
+  border: none;
+  box-shadow: var(--shadow-lg);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: var(--radius-xl);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: var(--space-lg);
+}
+
+.aula-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary), var(--accent), var(--info));
+  background-size: 200% 100%;
+  animation: gradientShift 3s ease infinite;
+}
+
 .aula-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-2xl);
 }
 
 .aula-card .card-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: var(--text-inverse);
   border: none;
-  border-radius: 8px 8px 0 0;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding: var(--space-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.aula-card .card-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+  transform: translateX(-100%);
+  transition: var(--transition-normal);
+}
+
+.aula-card:hover .card-header::before {
+  transform: translateX(100%);
 }
 
 .aula-card .card-body {
-  padding: 1.5rem;
+  padding: var(--space-xl);
+  background: rgba(255, 255, 255, 0.98);
 }
 
-/* Status badges */
+/* ===== STATUS BADGES MODERNOS ===== */
 .badge-disponivel {
-  background: linear-gradient(135deg, #28a745, #20c997);
-  color: white;
+  background: linear-gradient(135deg, var(--success), var(--success-light));
+  color: var(--text-inverse);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: var(--shadow-sm);
 }
 
 .badge-lotada {
-  background: linear-gradient(135deg, #ffc107, #fd7e14);
-  color: white;
+  background: linear-gradient(135deg, var(--warning), var(--warning-light));
+  color: var(--text-inverse);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: var(--shadow-sm);
 }
 
 .badge-cancelada {
-  background: linear-gradient(135deg, #dc3545, #e83e8c);
-  color: white;
+  background: linear-gradient(135deg, var(--danger), var(--danger-light));
+  color: var(--text-inverse);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: var(--shadow-sm);
 }
 
-/* Accordion de reservas */
+/* ===== ACCORDION MODERNO ===== */
 .accordion-button {
-  background: rgba(102, 126, 234, 0.1);
-  border: 1px solid rgba(102, 126, 234, 0.2);
-  color: #667eea;
-  font-weight: 600;
+  background: rgba(99, 102, 241, 0.1);
+  border: 2px solid rgba(99, 102, 241, 0.2);
+  color: var(--primary);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  transition: var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.accordion-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(6, 182, 212, 0.05));
+  opacity: 0;
+  transition: var(--transition-normal);
+}
+
+.accordion-button:hover::before {
+  opacity: 1;
 }
 
 .accordion-button:not(.collapsed) {
-  background: rgba(102, 126, 234, 0.2);
-  color: #667eea;
-  box-shadow: none;
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--primary-dark);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
 }
 
 .accordion-button:focus {
-  box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+  border-color: var(--primary);
 }
 
 .accordion-body {
-  background: rgba(248, 249, 250, 0.8);
+  background: rgba(248, 249, 250, 0.9);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  padding: var(--space-lg);
+  border: 2px solid rgba(99, 102, 241, 0.2);
+  border-top: none;
 }
 
-/* Lista de reservas */
+/* ===== LISTA DE RESERVAS MODERNA ===== */
 .reserva-item {
-  border-left: 4px solid #667eea;
-  background: rgba(255, 255, 255, 0.8);
-  margin-bottom: 0.5rem;
-  border-radius: 0 6px 6px 0;
+  border-left: 4px solid var(--primary);
+  background: rgba(255, 255, 255, 0.9);
+  margin-bottom: var(--space-md);
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+  padding: var(--space-lg);
+  transition: var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.reserva-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(6, 182, 212, 0.05));
+  opacity: 0;
+  transition: var(--transition-normal);
 }
 
 .reserva-item:hover {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.98);
+  transform: translateX(4px);
+  box-shadow: var(--shadow-md);
 }
 
-/* Navegação por abas */
+.reserva-item:hover::before {
+  opacity: 1;
+}
+
+/* ===== NAVEGAÇÃO POR ABAS MODERNA ===== */
 .nav-tabs {
-  border-bottom: 2px solid rgba(102, 126, 234, 0.2);
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 8px 8px 0 0;
-  padding: 0 1rem;
+  border-bottom: 3px solid rgba(99, 102, 241, 0.2);
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding: 0 var(--space-lg);
+  backdrop-filter: blur(10px);
+  margin-bottom: 0;
 }
 
 .nav-tabs .nav-link {
   border: none;
-  color: #6c757d;
-  font-weight: 500;
-  padding: 1rem 1.5rem;
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+  padding: var(--space-lg) var(--space-xl);
   border-radius: 0;
-  transition: all 0.3s ease;
+  transition: var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-tabs .nav-link::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  transform: scaleX(0);
+  transition: var(--transition-normal);
 }
 
 .nav-tabs .nav-link:hover {
-  color: #667eea;
-  background: rgba(102, 126, 234, 0.1);
+  color: var(--primary);
+  background: rgba(99, 102, 241, 0.05);
   border: none;
 }
 
+.nav-tabs .nav-link:hover::before {
+  transform: scaleX(1);
+}
+
 .nav-tabs .nav-link.active {
-  color: #667eea;
-  background: rgba(102, 126, 234, 0.1);
-  border-bottom: 3px solid #667eea;
-  font-weight: 600;
+  color: var(--primary);
+  background: rgba(99, 102, 241, 0.1);
+  border: none;
+  font-weight: var(--font-weight-semibold);
 }
 
-/* Conteúdo das abas */
+.nav-tabs .nav-link.active::before {
+  transform: scaleX(1);
+}
+
+/* ===== CONTEÚDO DAS ABAS MODERNO ===== */
 .tab-content {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 0 0 8px 8px;
-  padding: 2rem;
-  min-height: 400px;
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  padding: var(--space-2xl);
+  min-height: 500px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  border-top: none;
 }
 
-/* Estado vazio */
+/* ===== ESTADO VAZIO MODERNO ===== */
 .empty-state {
   text-align: center;
-  padding: 4rem 2rem;
+  padding: var(--space-3xl) var(--space-2xl);
+  position: relative;
+}
+
+.empty-state::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  z-index: -1;
 }
 
 .empty-state .display-1 {
-  color: rgba(102, 126, 234, 0.3);
-  margin-bottom: 1rem;
+  color: rgba(99, 102, 241, 0.3);
+  margin-bottom: var(--space-lg);
+  font-size: var(--font-size-4xl);
 }
 
 .empty-state h4 {
-  color: #6c757d;
-  margin-bottom: 1rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-lg);
+  font-size: var(--font-size-xl);
 }
 
 .empty-state p {
-  color: #adb5bd;
-  font-size: 1.1rem;
+  color: var(--text-muted);
+  font-size: var(--font-size-lg);
+  max-width: 400px;
+  margin: 0 auto;
 }
 
-/* Calendário */
+/* ===== CALENDÁRIO MODERNO ===== */
 .calendario-container {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 8px;
-  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: var(--radius-xl);
+  padding: var(--space-xl);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  backdrop-filter: blur(10px);
 }
 
 .calendario-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-xl);
+  padding-bottom: var(--space-lg);
+  border-bottom: 2px solid var(--border-secondary);
 }
 
 .calendario-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 1px;
-  background: #dee2e6;
-  border-radius: 8px;
+  gap: 2px;
+  background: var(--border-primary);
+  border-radius: var(--radius-lg);
   overflow: hidden;
+  box-shadow: var(--shadow-md);
 }
 
 .calendario-dia {
   background: white;
-  padding: 1rem;
-  min-height: 100px;
+  padding: var(--space-md);
+  min-height: 120px;
   display: flex;
   flex-direction: column;
+  transition: var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.calendario-dia:hover {
+  background: var(--bg-secondary);
+  transform: scale(1.02);
+  z-index: 1;
+  box-shadow: var(--shadow-md);
 }
 
 .calendario-dia-header {
-  font-weight: 600;
-  color: #495057;
-  margin-bottom: 0.5rem;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+  text-align: center;
+  font-size: var(--font-size-sm);
 }
 
 .calendario-dia-content {
   flex: 1;
-  font-size: 0.875rem;
+  font-size: var(--font-size-xs);
 }
 
 .calendario-aula {
-  background: rgba(102, 126, 234, 0.1);
-  border-left: 3px solid #667eea;
-  padding: 0.25rem 0.5rem;
-  margin-bottom: 0.25rem;
-  border-radius: 0 4px 4px 0;
-  font-size: 0.75rem;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(6, 182, 212, 0.1));
+  border-left: 3px solid var(--primary);
+  padding: var(--space-xs) var(--space-sm);
+  margin-bottom: var(--space-xs);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  transition: var(--transition-normal);
 }
 
-/* Responsividade */
+.calendario-aula:hover {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(6, 182, 212, 0.2));
+  transform: translateX(2px);
+}
+
+/* ===== RESPONSIVIDADE MODERNA ===== */
 @media (max-width: 768px) {
   .dashboard-header {
-    padding: 1rem 0;
+    padding: var(--space-md) 0;
   }
   
   .dashboard-content {
-    padding: 1rem 0;
+    padding: var(--space-lg) 0;
   }
   
   .link-publico-container {
     flex-direction: column;
-    gap: 0.5rem;
+    gap: var(--space-md);
+    padding: var(--space-md);
   }
   
   .link-publico-input {
@@ -237,31 +471,98 @@
   
   .nav-tabs {
     flex-wrap: wrap;
+    padding: 0 var(--space-md);
   }
   
   .nav-tabs .nav-link {
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
+    padding: var(--space-md) var(--space-lg);
+    font-size: var(--font-size-sm);
   }
   
   .tab-content {
-    padding: 1rem;
+    padding: var(--space-lg);
+    min-height: 400px;
   }
   
   .aula-card .card-body {
-    padding: 1rem;
+    padding: var(--space-lg);
+  }
+  
+  .calendario-container {
+    padding: var(--space-lg);
+  }
+  
+  .calendario-dia {
+    min-height: 100px;
+    padding: var(--space-sm);
+  }
+  
+  .empty-state {
+    padding: var(--space-2xl) var(--space-lg);
+  }
+  
+  .empty-state .display-1 {
+    font-size: var(--font-size-3xl);
   }
 }
 
-/* Animações */
+@media (max-width: 480px) {
+  .calendario-grid {
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+  }
+  
+  .calendario-dia {
+    min-height: 80px;
+    padding: var(--space-xs);
+  }
+  
+  .calendario-dia-header {
+    font-size: var(--font-size-xs);
+  }
+  
+  .calendario-aula {
+    font-size: 0.7rem;
+    padding: 2px 4px;
+  }
+}
+
+/* ===== ANIMAÇÕES MODERNAS ===== */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(30px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 
@@ -276,26 +577,120 @@
 .aula-card:nth-child(5) { animation-delay: 0.5s; }
 .aula-card:nth-child(6) { animation-delay: 0.6s; }
 
-/* Loading states */
+.reserva-item {
+  animation: slideInLeft 0.5s ease-out;
+}
+
+.reserva-item:nth-child(odd) {
+  animation: slideInRight 0.5s ease-out;
+}
+
+/* ===== ESTADOS DE CARREGAMENTO MODERNOS ===== */
 .loading-spinner {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 200px;
+  min-height: 300px;
+  position: relative;
+}
+
+.loading-spinner::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(99, 102, 241, 0.1);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
 .loading-spinner .spinner-border {
-  color: #667eea;
+  color: var(--primary);
+  width: 3rem;
+  height: 3rem;
 }
 
-/* Error states */
+/* ===== ESTADOS DE ERRO MODERNOS ===== */
 .error-state {
   text-align: center;
-  padding: 2rem;
-  color: #dc3545;
+  padding: var(--space-2xl);
+  color: var(--danger);
+  background: rgba(239, 68, 68, 0.05);
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  margin: var(--space-xl) 0;
 }
 
 .error-state .bi {
-  font-size: 3rem;
-  margin-bottom: 1rem;
+  font-size: var(--font-size-4xl);
+  margin-bottom: var(--space-lg);
+  color: var(--danger);
+}
+
+.error-state h4 {
+  color: var(--danger);
+  margin-bottom: var(--space-md);
+}
+
+.error-state p {
+  color: var(--text-secondary);
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* ===== MELHORIAS DE ACESSIBILIDADE ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ===== ESTADOS DE FOCO MELHORADOS ===== */
+.aula-card:focus-within {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.nav-tabs .nav-link:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ===== MELHORIAS DE PERFORMANCE ===== */
+.aula-card,
+.reserva-item,
+.calendario-dia {
+  will-change: transform;
+}
+
+/* ===== ESTADOS DE HOVER MELHORADOS ===== */
+@media (hover: hover) {
+  .aula-card:hover {
+    transform: translateY(-8px) scale(1.02);
+  }
+  
+  .reserva-item:hover {
+    transform: translateX(4px) scale(1.01);
+  }
+  
+  .calendario-dia:hover {
+    transform: scale(1.05);
+  }
+}
+
+/* ===== ESTADOS DE PRESSÃO ===== */
+.aula-card:active {
+  transform: translateY(-4px) scale(0.98);
+}
+
+.btn:active {
+  transform: translateY(0) scale(0.98);
 } 

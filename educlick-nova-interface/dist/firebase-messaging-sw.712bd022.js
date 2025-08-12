@@ -160,9 +160,9 @@
       });
     }
   }
-})({"de3qa":[function(require,module,exports,__globalThis) {
+})({"4omDp":[function(require,module,exports,__globalThis) {
 var global = arguments[3];
-var HMR_HOST = "localhost";
+var HMR_HOST = null;
 var HMR_PORT = null;
 var HMR_SERVER_PORT = 1234;
 var HMR_SECURE = false;
@@ -700,6 +700,6 @@ self.addEventListener('notificationclick', function(event) {
     }));
 });
 
-},{}]},["de3qa","2NZG5"], "2NZG5", "parcelRequired50e", {})
+},{}]},["4omDp","2NZG5"], "2NZG5", "parcelRequired50e", {})
 
 //# sourceMappingURL=firebase-messaging-sw.712bd022.js.map
