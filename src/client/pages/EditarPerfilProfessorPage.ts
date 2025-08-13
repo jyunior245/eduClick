@@ -1,6 +1,7 @@
 import { EditarPerfilTemplate } from '../templates/EditarPerfilTemplate';
 import { EditarPerfilService, PerfilFormData } from '../services/EditarPerfilService';
 import { mostrarToast } from '../components/Toast';
+import { uploadFotoPerfilAPI } from '../services/api';
 
 export async function renderEditarPerfilProfessorPage(root: HTMLElement): Promise<void> {
   try {
@@ -20,22 +21,31 @@ function setupEditarPerfilHandler() {
     form.onsubmit = handleEditarPerfilSubmit;
   }
   (window as any).handleEditarPerfilSubmit = handleEditarPerfilSubmit;
+
+  const fileInput = document.getElementById('foto') as HTMLInputElement | null;
+  if (fileInput) {
+    fileInput.onchange = handleFotoChange;
+  }
 }
 
 async function handleEditarPerfilSubmit(event: Event) {
   event.preventDefault();
   const form = event.target as HTMLFormElement;
   
+  const getValue = (name: string) => {
+    const el = form.querySelector(`[name="${name}"]`) as HTMLInputElement | null;
+    return el ? el.value : undefined;
+  };
+
   const formData: PerfilFormData = {
-    nome: (form.nome as HTMLInputElement).value,
-    email: (form.email as HTMLInputElement).value,
-    telefone: (form.telefone as HTMLInputElement).value || undefined,
-    especialidade: (form.especialidade as HTMLInputElement).value || undefined,
-    bio: (form.bio as HTMLTextAreaElement).value || undefined,
-    linkUnico: (form.linkUnico as HTMLInputElement).value || undefined,
-    observacoes: (form.observacoes as HTMLTextAreaElement).value || undefined,
-    formacao: (form.formacao as HTMLInputElement).value || undefined,
-    experiencia: (form.experiencia as HTMLInputElement).value || undefined
+    nome: getValue('nome') ?? '',
+    email: getValue('email') ?? '',
+    telefone: getValue('telefone'),
+    especialidade: getValue('especialidade'),
+    formacao: getValue('formacao'),
+    experiencia: getValue('experiencia'),
+    linkUnico: getValue('linkUnico'),
+    fotoUrl: (document.getElementById('foto-preview') as HTMLImageElement | null)?.src
   };
 
   const validation = EditarPerfilService.validate(formData);
@@ -53,4 +63,31 @@ async function handleEditarPerfilSubmit(event: Event) {
   } else {
     mostrarToast(result.error || 'Erro ao salvar perfil', 'danger');
   }
-} 
+}
+
+async function handleFotoChange(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const file = input.files && input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    mostrarToast('Arquivo maior que 5MB.', 'warning');
+    input.value = '';
+    return;
+  }
+  try {
+    mostrarToast('Enviando foto...', 'info');
+    const res = await uploadFotoPerfilAPI(file);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Erro ao enviar foto' }));
+      throw new Error(err.error || 'Erro ao enviar foto');
+    }
+    const data = await res.json();
+    const url = data.fotoUrl as string;
+    const preview = document.getElementById('foto-preview') as HTMLImageElement | null;
+    if (preview) preview.src = url;
+    mostrarToast('Foto atualizada!', 'success');
+  } catch (error: any) {
+    console.error('[UPLOAD FOTO] erro', error);
+    mostrarToast(error?.message || 'Falha ao enviar foto', 'danger');
+  }
+}
