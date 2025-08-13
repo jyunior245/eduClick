@@ -2,7 +2,7 @@ import { BaseTemplate } from './BaseTemplate';
 import { Button } from '../components/ui/Button';
 import { AulaCard, AulaCardData } from '../components/ui/AulaCard';
 import { AulaModal } from '../components/modals/AulaModal';
-import { AulaDetailModal } from 'client/components/modals/AulaDetailModal';
+import { AulaDetailModal } from '../components/modals/AulaDetailModal';
 
 export interface DashboardData {
   usuario: any;
@@ -38,7 +38,7 @@ export class DashboardTemplate {
       text: 'Nova Aula',
       variant: 'primary',
       size: 'sm',
-      className: 'ms-2',
+      className: 'ms-1 px-2 py-1',
       id: 'nova-aula-btn',
       icon: 'bi bi-plus-circle'
     });
@@ -52,20 +52,23 @@ export class DashboardTemplate {
     });
 
     return `
-      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-        <div>
-          <h2 class="fw-bold mb-2 d-flex align-items-center gap-2">
-            Dashboard do Professor
-            ${logoutButton}
-          </h2>
-          <div class="d-flex align-items-center gap-3">
-            <div class="d-flex align-items-center">
-              <span class="fw-semibold me-2">Link público:</span>
-              <input type="text" id="input-link-publico" class="form-control form-control-sm" style="width: 300px;" readonly value="${location.origin}/professor/${usuario.linkUnico || usuario.id}">
-              <button class="btn btn-outline-primary btn-sm ms-2" id="btn-copiar-link">Copiar</button>
-            </div>
-            ${editarPerfilButton}
+      <div class="mb-4">
+        <!-- Linha superior: apenas o título -->
+        <div class="d-flex justify-content-between align-items-center gap-3 mb-2">
+          <h2 class="fw-bold mb-0">Dashboard do Professor</h2>
+          <div></div>
+        </div>
+        <!-- Linha abaixo: à esquerda (link público + copiar + nova aula), à direita (editar perfil + sair) -->
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div class="d-flex align-items-center flex-nowrap gap-2">
+            <span class="fw-semibold">Link público:</span>
+            <input type="text" id="input-link-publico" class="form-control form-control-sm" style="max-width: 360px;" readonly value="${location.origin}/professor/${usuario.linkUnico || usuario.id}">
+            <button class="btn btn-link btn-sm p-0" id="btn-copiar-link">Copiar</button>
+          </div>
+          <div class="d-flex align-items-center gap-2 align-self-start">
             ${novaAulaButton}
+            ${editarPerfilButton}
+            ${logoutButton}
           </div>
         </div>
       </div>
@@ -188,7 +191,7 @@ export class DashboardTemplate {
       }
       let pagamentoBadge = reserva.pagamentoEfetivado ? '<span class="badge bg-info ms-2">Pagamento Efetivado</span>' : '';
       return `<li class="list-group-item d-flex justify-content-between align-items-center">
-        <span><b>${reserva.nome}</b> <span class="text-muted">${reserva.email}</span></span>
+        <span><b>${reserva.nome}</b> <span class="text-muted">${reserva.email}</span><br><span class="text-muted">${reserva.telefone || ''}</span></span>
         <span>${statusBadge} ${pagamentoBadge}</span>
       </li>`;
     }
