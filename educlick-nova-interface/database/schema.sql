@@ -25,7 +25,7 @@ CREATE TABLE professor (
     experiencia TEXT,
     "linkUnico" VARCHAR(255) UNIQUE,
     "fotoUrl" VARCHAR(500),
-    "stripeAccountId" VARCHAR(100)
+
 );
 
 -- Tabela de Alunos
