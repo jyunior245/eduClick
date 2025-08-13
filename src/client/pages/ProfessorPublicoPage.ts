@@ -1,27 +1,51 @@
+// src/client/pages/ProfessorPublicoPage.ts
 import { ProfessorPublicoTemplate } from '../templates/ProfessorPublicoTemplate';
 import { ProfessorPublicoService } from '../services/ProfessorPublicoService';
 import { mostrarToast } from '../components/Toast';
-import { getProfessorPublico, getAulasPublicas, reservarAulaPublica, getPerfilEAulasPublicas } from '../services/api';
 import { API_BASE } from '../services/api';
 
 let professorCache: any = null;
 let aulasCache: any[] = [];
 let linkUnicoCache: string = '';
+let aulasRefreshTimer: any = null;
+let meusAgendamentosTimer: any = null;
 
 export async function renderProfessorPublicoPage(root: HTMLElement, linkUnico: string): Promise<void> {
   linkUnicoCache = linkUnico;
   try {
-    // Buscar perfil e aulas juntos via endpoint correto
     const data = await ProfessorPublicoService.carregarPerfilEAulas(linkUnico);
     professorCache = data.professor;
-    aulasCache = data.aulas;
-    root.innerHTML = ProfessorPublicoTemplate.render({ professor: professorCache, aulas: aulasCache });
-    root.innerHTML += renderAgendamentoConsultaButton();
+    aulasCache = data.aulas || [];
+  root.innerHTML = ProfessorPublicoTemplate.render({ professor: professorCache, aulas: aulasCache });
     setupReservarHandler();
     setupConsultaAgendamentoButton(linkUnico);
+    startAulasAutoRefresh(root);
   } catch (error) {
+    console.error('[renderProfessorPublicoPage] erro:', error);
     root.innerHTML = ProfessorPublicoTemplate.render({ errorMessage: 'Erro ao carregar dados do professor.' });
   }
+}
+
+function startAulasAutoRefresh(root: HTMLElement) {
+  if (aulasRefreshTimer) clearInterval(aulasRefreshTimer);
+  aulasRefreshTimer = setInterval(async () => {
+    try {
+      const data = await ProfessorPublicoService.carregarPerfilEAulas(linkUnicoCache);
+      const novasAulas = data.aulas || [];
+      // Re-render apenas se houve mudança relevante
+      const before = JSON.stringify(aulasCache.map(a => ({ id: a.id, status: a.status, dataHora: a.dataHora, vagas_restantes: a.vagas_restantes })));
+      const after = JSON.stringify(novasAulas.map((a: any) => ({ id: a.id, status: a.status, dataHora: a.dataHora, vagas_restantes: a.vagas_restantes })));
+      if (before !== after) {
+        aulasCache = novasAulas;
+        professorCache = data.professor || professorCache;
+        root.innerHTML = ProfessorPublicoTemplate.render({ professor: professorCache, aulas: aulasCache });
+        setupReservarHandler();
+        setupConsultaAgendamentoButton(linkUnicoCache);
+      }
+    } catch (e) {
+      // silencioso
+    }
+  }, 15000);
 }
 
 function setupReservarHandler() {
@@ -29,8 +53,13 @@ function setupReservarHandler() {
 }
 
 function showReservaModal(aulaId: string) {
-  const aula = aulasCache.find(a => a.id === aulaId);
-  if (!aula) return;
+  // Normalizar tipo: comparar como string
+  const aula = aulasCache.find(a => String(a.id) === String(aulaId));
+  if (!aula) {
+    mostrarToast('Aula não encontrada.', 'danger');
+    return;
+  }
+  // (resto do modal continua igual)
   const modalHtml = `
     <div class="modal fade" id="modalReserva" tabindex="-1">
       <div class="modal-dialog">
@@ -67,7 +96,8 @@ function showReservaModal(aulaId: string) {
     document.body.appendChild(modalDiv);
   }
   modalDiv.innerHTML = modalHtml;
-  const modal = new (window as any).bootstrap.Modal(document.getElementById('modalReserva'));
+  const modalEl = document.getElementById('modalReserva');
+  const modal = new (window as any).bootstrap.Modal(modalEl);
   modal.show();
   const form = document.getElementById('formReserva') as HTMLFormElement;
   if (form) {
@@ -85,269 +115,248 @@ async function handleReservaSubmit(event: Event, aulaId: string, modal: any) {
   const nome = (form.nome as HTMLInputElement).value;
   const telefone = (form.telefone as HTMLInputElement).value;
   const email = (form.email as HTMLInputElement).value;
-  const result = await ProfessorPublicoService.reservarAula(linkUnicoCache, aulaId, nome, telefone, email);
+  let alunoFcmToken: string | null = null;
+  try {
+    const mod = await import('../services/notifications');
+    const fn = (mod as any).getPublicFcmToken as (() => Promise<string | null>) | undefined;
+    alunoFcmToken = fn ? await fn() : null;
+    if (!alunoFcmToken) {
+      console.warn('[Public] Sem FCM token (perm negada ou erro). Prosseguindo sem token.');
+    }
+  } catch {}
+  const result = await ProfessorPublicoService.reservarAula(linkUnicoCache, aulaId, nome, telefone, email, alunoFcmToken);
   if (result.success) {
     modal.hide();
     mostrarToast('Reserva realizada com sucesso!', 'success');
-    // Atualizar lista de aulas
-    aulasCache = await ProfessorPublicoService.carregarAulas(linkUnicoCache);
-    const root = document.getElementById('root');
-    if (root) {
-      root.innerHTML = ProfessorPublicoTemplate.render({ professor: professorCache, aulas: aulasCache, successMessage: 'Reserva realizada com sucesso!' });
-      root.innerHTML += renderAgendamentoConsultaButton();
-      setupConsultaAgendamentoButton(linkUnicoCache);
+    // Recarregar perfil e aulas para atualizar visual
+    try {
+      const data = await ProfessorPublicoService.carregarPerfilEAulas(linkUnicoCache);
+      aulasCache = data.aulas || [];
+      professorCache = data.professor || professorCache;
+      const root = document.getElementById('root');
+      if (root) {
+  root.innerHTML = ProfessorPublicoTemplate.render({ professor: professorCache, aulas: aulasCache, successMessage: 'Reserva realizada com sucesso!' });
+        setupReservarHandler();
+        setupConsultaAgendamentoButton(linkUnicoCache);
+        startAulasAutoRefresh(root);
+      }
+    } catch (e) {
+      console.warn('[handleReservaSubmit] não foi possível recarregar aulas:', e);
     }
-    setupReservarHandler();
   } else {
     mostrarToast(result.error || 'Erro ao reservar', 'danger');
   }
 }
 
-// Adicionar função para buscar agendamentos do aluno
-async function buscarAgendamentosAluno(linkUnico: string, nome: string, telefone: string, email: string) {
-  // Chamar endpoint público de agendamentos do aluno
-  const res = await fetch(`${API_BASE}/professor-publico/${linkUnico}/agendamentos/aluno?nome=${encodeURIComponent(nome)}&telefone=${encodeURIComponent(telefone)}&email=${encodeURIComponent(email)}`);
-  if (!res.ok) throw new Error('Erro ao buscar agendamentos');
-  return await res.json();
-}
+// resto do arquivo (funções de consulta/agendamentos e renderizações) permanece igual,
+// mas sempre compare ids com String(...) para evitar mismatches
+// ...
 
-// Adicionar formulário na renderização da página pública
-function renderAgendamentoConsultaButton() {
-  return `
-    <div class="text-center mt-4">
-      <button class="btn btn-outline-primary" id="btnAbrirConsultaAgendamento">
-        <i class="bi bi-search"></i> Consultar meus agendamentos
-      </button>
-    </div>
-    <div id="modalConsultaAgendamentoContainer"></div>
-  `;
+function setupConsultaAgendamentoButton(linkUnico: string) {
+  const btn = document.getElementById('btnAbrirConsultaAgendamento');
+  if (btn) {
+    btn.onclick = () => showConsultaAgendamentoModal(linkUnico);
+  }
 }
 
 function showConsultaAgendamentoModal(linkUnico: string) {
+  const modalHtml = `
+    <div class="modal fade" id="modalConsultaAgendamento" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Consultar Meus Agendamentos</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="formConsultaAgendamento">
+              <div class="mb-3">
+                <label for="nomeConsulta" class="form-label">Nome</label>
+                <input type="text" class="form-control" id="nomeConsulta" name="nome" required>
+              </div>
+              <div class="mb-3">
+                <label for="telefoneConsulta" class="form-label">Telefone</label>
+                <input type="tel" class="form-control" id="telefoneConsulta" name="telefone" required>
+              </div>
+              <div class="mb-3">
+                <label for="emailConsulta" class="form-label">E-mail</label>
+                <input type="email" class="form-control" id="emailConsulta" name="email" required>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">Consultar</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
   let modalDiv = document.getElementById('modalConsultaAgendamentoContainer');
   if (!modalDiv) {
     modalDiv = document.createElement('div');
     modalDiv.id = 'modalConsultaAgendamentoContainer';
     document.body.appendChild(modalDiv);
   }
-  modalDiv.innerHTML = `
-    <div class="modal fade" id="modalConsultaAgendamento" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Consultar meus agendamentos</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <form id="formConsultaAgendamento">
-              <div class="mb-3">
-                <input type="text" class="form-control" name="nome" placeholder="Nome" required>
-              </div>
-              <div class="mb-3">
-                <input type="tel" class="form-control" name="telefone" placeholder="Telefone" required>
-              </div>
-              <div class="mb-3">
-                <input type="email" class="form-control" name="email" placeholder="E-mail" required>
-              </div>
-              <button type="submit" class="btn btn-primary w-100">Buscar Agendamentos</button>
-            </form>
-            <div id="agendamentosAlunoModal"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-  const modal = new (window as any).bootstrap.Modal(document.getElementById('modalConsultaAgendamento'));
+  modalDiv.innerHTML = modalHtml;
+  const modalEl = document.getElementById('modalConsultaAgendamento');
+  const modal = new (window as any).bootstrap.Modal(modalEl);
   modal.show();
   const form = document.getElementById('formConsultaAgendamento') as HTMLFormElement;
   if (form) {
-    form.onsubmit = async (event) => {
-      event.preventDefault();
-      const nome = (form.nome as HTMLInputElement).value;
-      const telefone = (form.telefone as HTMLInputElement).value;
-      const email = (form.email as HTMLInputElement).value;
-      try {
-        const agendamentos = await buscarAgendamentosAluno(linkUnico, nome, telefone, email);
-        exibirAgendamentosAlunoModal(agendamentos);
-      } catch (error) {
-        mostrarToast('Erro ao buscar agendamentos', 'danger');
-      }
-    };
+    form.onsubmit = (event) => handleConsultaAgendamentoSubmit(event, linkUnico, modal);
   }
 }
 
-function exibirAgendamentosAlunoNaPagina(agendamentos: any[]) {
-  let container = document.getElementById('meusAgendamentosSection');
-  if (!container) {
-    container = document.createElement('div');
-    container.id = 'meusAgendamentosSection';
-    const root = document.getElementById('root');
-    if (root) {
-      const cardPrincipal = root.querySelector('.card.shadow-lg');
-      if (cardPrincipal && cardPrincipal.parentElement) {
-        cardPrincipal.parentElement.insertAdjacentElement('afterend', container);
-      } else {
-        root.appendChild(container);
-      }
-    }
+async function handleCancelarAgendamentoAluno(agendamento: any) {
+  if (!agendamento || !agendamento.reservaId) {
+    mostrarToast('Reserva inválida.', 'danger');
+    return;
   }
-  container.innerHTML = `
-    <div class="container d-flex justify-content-center mt-4 mb-5">
-      <div class="card shadow rounded-4 w-100" style="max-width: 700px;">
-        <div class="card-header bg-primary text-white rounded-top-4">
-          <h4 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Meus Agendamentos</h4>
-        </div>
-        <div class="card-body p-4">
-          ${agendamentos.length === 0 ? '<div class="text-muted">Nenhum agendamento encontrado.</div>' : agendamentos.map(a => renderAgendamentoCardUnificado(a)).join('')}
-        </div>
-      </div>
-    </div>
-  `;
-  setTimeout(() => {
-    container.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }, 200);
-}
-
-function renderAgendamentoCardUnificado(agendamento: any): string {
-  const agora = new Date();
-  const dataAula = new Date(agendamento.dataHora);
-  let statusBadge = '';
-  let borderColor = 'border-success';
-  let icon = '<i class="bi bi-calendar-check me-1 text-success"></i>';
-  let podeCancelar = false;
-  if (agendamento.status && agendamento.status.toLowerCase().includes('cancel')) {
-    statusBadge = '<span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Cancelado</span>';
-    borderColor = 'border-danger';
-    icon = '<i class="bi bi-x-circle me-1 text-danger"></i>';
-  } else if (dataAula < agora && (agendamento.status && agendamento.status.toLowerCase().includes('finaliz'))) {
-    statusBadge = '<span class="badge bg-secondary"><i class="bi bi-flag me-1"></i>Finalizado</span>';
-    borderColor = 'border-secondary';
-    icon = '<i class="bi bi-flag me-1 text-secondary"></i>';
-  } else if (dataAula < agora) {
-    statusBadge = '<span class="badge bg-secondary"><i class="bi bi-flag me-1"></i>Finalizado</span>';
-    borderColor = 'border-secondary';
-    icon = '<i class="bi bi-flag me-1 text-secondary"></i>';
-  } else {
-    statusBadge = '<span class="badge bg-success"><i class="bi bi-calendar-check me-1"></i>Agendado</span>';
-    borderColor = 'border-success';
-    icon = '<i class="bi bi-calendar-check me-1 text-success"></i>';
-    podeCancelar = true;
-  }
-  
-  // Status da aula
-  let statusAulaBadge = '';
-  if (agendamento.statusAula === 'reagendada') {
-    statusAulaBadge = '<span class="badge bg-warning text-dark"><i class="bi bi-arrow-clockwise me-1"></i>Reagendada</span>';
-  } else if (agendamento.statusAula === 'cancelada') {
-    statusAulaBadge = '<span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Aula Cancelada</span>';
-  } else if (agendamento.statusAula === 'lotada') {
-    statusAulaBadge = '<span class="badge bg-info"><i class="bi bi-people me-1"></i>Lotada</span>';
-  } else {
-    statusAulaBadge = '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Disponível</span>';
-  }
-  
-  const btnCancelar = podeCancelar ? `<button class="btn btn-outline-danger btn-sm float-end" onclick="cancelarReservaAluno('${agendamento.id}', '${agendamento.nome}', '${agendamento.telefone}')"><i class='bi bi-x-circle'></i> Cancelar</button>` : '';
-  return `
-    <div class="card mb-3 shadow-sm agendamento-card ${borderColor}" style="border-left: 6px solid; background: #f8f9fa; transition: box-shadow 0.2s;">
-      <div class="card-body">
-        <div class="d-flex align-items-start justify-content-between mb-3">
-          <div class="flex-shrink-0 display-5" style="font-size:2rem;">${icon}</div>
-          <div class="flex-grow-1 ms-3">
-            <h6 class="card-title mb-2 fw-bold text-primary">${agendamento.titulo}</h6>
-            <div class="row">
-              <div class="col-md-6">
-                <div class="mb-2"><i class="bi bi-person-badge me-2 text-secondary"></i><b>Professor:</b> ${agendamento.professorNome || 'N/A'}</div>
-                <div class="mb-2"><i class="bi bi-envelope me-2 text-secondary"></i><b>Email:</b> ${agendamento.professorEmail || 'N/A'}</div>
-                <div class="mb-2"><i class="bi bi-telephone me-2 text-secondary"></i><b>Telefone:</b> ${agendamento.professorTelefone || 'N/A'}</div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-2"><i class="bi bi-calendar-event me-2 text-secondary"></i><b>Data/Hora:</b> ${dataAula.toLocaleString()}</div>
-                <div class="mb-2"><i class="bi bi-info-circle me-2 text-secondary"></i><b>Status da Reserva:</b> ${statusBadge}</div>
-                <div class="mb-2"><i class="bi bi-calendar-check me-2 text-secondary"></i><b>Status da Aula:</b> ${statusAulaBadge}</div>
-              </div>
-            </div>
-          </div>
-          <div class="flex-shrink-0 ms-2">
-            ${btnCancelar}
-          </div>
-        </div>
-      </div>
-    </div>
-    <style>
-      .agendamento-card:hover { box-shadow: 0 0 0 4px #e3e6ea; }
-      @media (max-width: 768px) {
-        .agendamento-card .card-body .d-flex { flex-direction: column; align-items: flex-start; }
-        .agendamento-card .flex-shrink-0 { margin-bottom: 0.5rem; }
-        .agendamento-card .row .col-md-6 { margin-bottom: 1rem; }
-      }
-    </style>
-  `;
-}
-
-// Função global para cancelar reserva do aluno
-(window as any).cancelarReservaAluno = async function(aulaId: string, nome: string, telefone: string) {
-  if (!confirm('Tem certeza que deseja cancelar este agendamento?')) return;
   try {
-    const res = await fetch(`/api/aulas/${aulaId}/cancelar-reserva`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome, telefone })
-    });
+    const url = `${API_BASE}/reservas/${agendamento.reservaId}`;
+    // Usar PUT para marcar status 'cancelada' e liberar vaga no backend
+    const res = await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' } });
     if (res.ok) {
       mostrarToast('Reserva cancelada com sucesso!', 'success');
-      // Atualizar status do card imediatamente para feedback visual
-      const agendamentoCard = document.querySelector(`.agendamento-card button[onclick*="${aulaId}"]`);
-      if (agendamentoCard) {
-        const card = agendamentoCard.closest('.agendamento-card');
-        if (card) {
-          const statusDiv = card.querySelector('.badge');
-          if (statusDiv) {
-            statusDiv.className = 'badge bg-danger';
-            statusDiv.innerHTML = "<i class='bi bi-x-circle me-1'></i>Cancelado";
-          }
-          card.classList.remove('border-success', 'border-secondary');
-          card.classList.add('border-danger');
+      // Atualizar UI e recarregar página automaticamente para refletir mudanças
+      try {
+        if ((window as any).lastConsultaAgendamento) {
+          const { linkUnico, nome, telefone, email } = (window as any).lastConsultaAgendamento;
+          await consultarAgendamentosAluno(linkUnico, nome, telefone, email);
+        } else {
+          document.getElementById('resultadoConsultaAgendamento')?.remove();
         }
-      }
-      // Atualizar agendamentos após cancelamento
-      let nomeVal = '', telefoneVal = '', emailVal = '';
-      const form = document.getElementById('formConsultaAgendamento') as HTMLFormElement;
-      if (form) {
-        nomeVal = (form.nome as HTMLInputElement).value;
-        telefoneVal = (form.telefone as HTMLInputElement).value;
-        emailVal = (form.email as HTMLInputElement).value;
-      } else {
-        // Se não houver formulário, tente pegar do último agendamento exibido
-        const agendamentoCard = document.querySelector('.agendamento-card');
-        if (agendamentoCard) {
-          nomeVal = nome;
-          telefoneVal = telefone;
-          emailVal = '';
-        }
-      }
-      if (nomeVal && telefoneVal) {
-        const agendamentos = await buscarAgendamentosAluno(linkUnicoCache, nomeVal, telefoneVal, emailVal);
-        exibirAgendamentosAlunoNaPagina(agendamentos);
+      } finally {
+        setTimeout(() => window.location.reload(), 800);
       }
     } else {
       mostrarToast('Erro ao cancelar reserva.', 'danger');
     }
-  } catch (e) {
-    mostrarToast('Erro ao conectar com o servidor.', 'danger');
+  } catch (err) {
+    mostrarToast('Erro ao cancelar reserva.', 'danger');
   }
 }
 
-// Substituir exibirAgendamentosAlunoModal por exibirAgendamentosAlunoNaPagina
-function exibirAgendamentosAlunoModal(agendamentos: any[]) {
-  exibirAgendamentosAlunoNaPagina(agendamentos);
+// Expose the cancel handler globally for use in inline onclick
+(window as any).handleCancelarAgendamentoAluno = handleCancelarAgendamentoAluno;
+
+async function consultarAgendamentosAluno(linkUnico: string, nome: string, telefone: string, email: string) {
+  try {
+    const url = `${API_BASE}/professor-publico/${encodeURIComponent(linkUnico)}/agendamentos?nome=${encodeURIComponent(nome)}&telefone=${encodeURIComponent(telefone)}&email=${encodeURIComponent(email)}`;
+    const res = await fetch(url);
+    const agendamentos = await res.json();
+    renderResultadoConsultaAgendamento(agendamentos);
+  } catch (err) {
+    mostrarToast('Erro ao atualizar agendamentos.', 'danger');
+  }
 }
 
-// Substituir chamada do formulário por botão
-// root.innerHTML += renderAgendamentoConsultaButton();
-// Adicionar handler para o botão
-function setupConsultaAgendamentoButton(linkUnico: string) {
-  const btn = document.getElementById('btnAbrirConsultaAgendamento');
-  if (btn) {
-    btn.onclick = () => showConsultaAgendamentoModal(linkUnico);
+async function handleConsultaAgendamentoSubmit(event: Event, linkUnico: string, modal: any) {
+  event.preventDefault();
+  const form = event.target as HTMLFormElement;
+  const nome = (form.nome as HTMLInputElement).value;
+  const telefone = (form.telefone as HTMLInputElement).value;
+  const email = (form.email as HTMLInputElement).value;
+  (window as any).lastConsultaAgendamento = { linkUnico, nome, telefone, email };
+  try {
+    const url = `${API_BASE}/professor-publico/${encodeURIComponent(linkUnico)}/agendamentos?nome=${encodeURIComponent(nome)}&telefone=${encodeURIComponent(telefone)}&email=${encodeURIComponent(email)}`;
+    const res = await fetch(url);
+    const agendamentos = await res.json();
+    modal.hide();
+    renderResultadoConsultaAgendamento(agendamentos);
+  } catch (err) {
+    mostrarToast('Erro ao consultar agendamentos.', 'danger');
   }
-} 
+}
+
+function renderResultadoConsultaAgendamento(agendamentos: any[]) {
+  // Remove modal anterior se existir
+  const oldModal = document.getElementById('modalMeusAgendamentos');
+  const modalHtml = `
+    <div class="modal fade" id="modalMeusAgendamentos" tabindex="-1" style="display:none;">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title">Meus Agendamentos</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            ${(!agendamentos || agendamentos.length === 0)
+              ? `<div class='alert alert-info'>Nenhum agendamento encontrado para os dados informados.</div>`
+              : agendamentos.map(a => {
+                  // Badge de status da aula (inclui destaque para REAGENDADA)
+                  let statusAulaBadge = `<span class='badge bg-secondary'>${a.statusAula || '-'}</span>`;
+                  const statusAulaLc = (a.statusAula || '').toLowerCase();
+                  if (statusAulaLc === 'disponivel' || statusAulaLc === 'disponível') {
+                    statusAulaBadge = `<span class='badge bg-success'>${a.statusAula}</span>`;
+                  } else if (statusAulaLc === 'reagendada') {
+                    statusAulaBadge = `<span class='badge bg-warning text-dark'>Reagendada</span>`;
+                  } else if (statusAulaLc === 'cancelada') {
+                    statusAulaBadge = `<span class='badge bg-danger'>Cancelada</span>`;
+                  }
+                  // Data/hora formatada (mostrar string crua se não for possível converter)
+                  let dataHoraRaw = a.dataHora || a.data_hora;
+                  let dataHoraStr = '-';
+                  if (dataHoraRaw) {
+                    try {
+                      const d = new Date(dataHoraRaw);
+                      if (!isNaN(d.getTime())) {
+                        dataHoraStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                      } else {
+                        dataHoraStr = String(dataHoraRaw);
+                      }
+                    } catch {
+                      dataHoraStr = String(dataHoraRaw);
+                    }
+                  }
+                  if (dataHoraStr === '-' && dataHoraRaw) {
+                    dataHoraStr = String(dataHoraRaw);
+                  }
+                  // Status da reserva
+                  let statusReservaBadge = `<span class='badge bg-secondary'>${a.status || '-'}</span>`;
+                  if ((a.status || '').toLowerCase() === 'ativa') {
+                    statusReservaBadge = `<span class='badge bg-success'>Disponível</span>`;
+                  }
+                  // Exibir objeto inteiro para depuração
+                  let debugInfo = '';
+                  return `
+                  <div class='card border-2 border-primary shadow-sm mb-4'>
+                    <div class='card-header bg-primary text-white d-flex justify-content-between align-items-center'>
+                      <span><i class="bi bi-calendar-event"></i> ${a.titulo}</span>
+                      ${statusAulaBadge}
+                    </div>
+                    <div class='card-body d-flex flex-column flex-md-row flex-wrap justify-content-between'>
+                      <div class='mb-2' style='min-width:220px;'>
+                        <p class='mb-1'><b>Professor:</b> ${a.professorNome || '-'}</p>
+                        <p class='mb-1'><b>Email:</b> ${a.professorEmail || '-'}</p>
+                        <p class='mb-1'><b>Telefone:</b> ${a.professorTelefone || '-'}</p>
+                      </div>
+                      <div class='mb-2' style='min-width:180px;'>
+                        <p class='mb-1'><b>${statusAulaLc === 'reagendada' ? 'Nova Data/Hora' : 'Data/Hora'}:</b> <span class='text-primary'>${dataHoraStr}</span></p>
+                        <p class='mb-1'><b>Status da Aula:</b> <span class='text-primary'>${a.statusAula || '-'}</span></p>
+                        <p class='mb-1'><b>Status da Reserva:</b> ${statusReservaBadge}</p>
+                        ${debugInfo}
+                      </div>
+                      <div class='d-flex align-items-end justify-content-end flex-grow-1'>
+                        <button class='btn btn-outline-danger btn-sm' onclick='if(confirm("Tem certeza que deseja cancelar a aula?")) handleCancelarAgendamentoAluno(${JSON.stringify(a)})'>Cancelar</button>
+                      </div>
+                    </div>
+                  </div>
+                  `;
+                }).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  // Adiciona modal ao body
+  const modalDiv = document.createElement('div');
+  modalDiv.innerHTML = modalHtml;
+  document.body.appendChild(modalDiv);
+
+  // Inicializa e exibe o modal (Bootstrap 5)
+  const modalElement = document.getElementById('modalMeusAgendamentos');
+  if (modalElement) {
+    // @ts-ignore
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+  }
+}
