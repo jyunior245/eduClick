@@ -24,13 +24,12 @@ export class ProfessorPublicoTemplate {
                 <div class="flex-fill">
                   <div class="row g-2">
                     <div class="col-12 col-md-6">
-                      <div class="mb-2"><i class="bi bi-person-lines-fill me-2 text-secondary"></i><b>Biografia:</b> <span class="text-dark">${professor.bio || '-'}</span></div>
                       <div class="mb-2"><i class="bi bi-mortarboard me-2 text-secondary"></i><b>Formação:</b> <span class="text-dark">${professor.formacao || '-'}</span></div>
                       <div class="mb-2"><i class="bi bi-briefcase me-2 text-secondary"></i><b>Experiência:</b> <span class="text-dark">${professor.experiencia || '-'}</span></div>
                     </div>
                     <div class="col-12 col-md-6">
-                      <div class="mb-2"><i class="bi bi-telephone me-2 text-secondary"></i><b>Contato:</b> <span class="text-dark">${professor.telefone || '-'}</span></div>
-                      <div class="mb-2"><i class="bi bi-info-circle me-2 text-secondary"></i><b>Observações:</b> <span class="text-dark">${professor.observacoes || '-'}</span></div>
+                      <div class="mb-2"><i class="bi bi-envelope me-2 text-secondary"></i><b>E-mail:</b> <span class="text-dark">${professor.email || '-'}</span></div>
+                      <div class="mb-2"><i class="bi bi-telephone me-2 text-secondary"></i><b>Telefone:</b> <span class="text-dark">${professor.telefone || '-'}</span></div>
                     </div>
                   </div>
                 </div>
@@ -48,15 +47,18 @@ export class ProfessorPublicoTemplate {
                     <div class="col-12 col-md-6 col-lg-4">
                       <div class="card h-100 border-primary">
                         <div class="card-body">
-                          <h5 class="card-title">${aula.titulo}</h5>
+                          <h5 class="card-title d-flex align-items-center justify-content-between">
+                            <span>${aula.titulo}</span>
+                            ${aula.status === 'REAGENDADA' ? `<span class='badge bg-warning text-dark ms-2'>Reagendada</span>` : ''}
+                          </h5>
                           <div><b>Conteúdo:</b> ${aula.conteudo}</div>
-                          <div><b>Data/Hora:</b> ${new Date(aula.dataHora).toLocaleString()}</div>
+                          <div><b>${aula.status === 'REAGENDADA' ? 'Nova Data/Hora' : 'Data/Hora'}:</b> ${new Date(aula.dataHora).toLocaleString()}</div>
                           <div><b>Duração:</b> ${aula.duracao} min</div>
                           <div><b>Valor:</b> R$ ${aula.valor?.toFixed(2) || '-'}</div>
-                          <div><b>Vagas:</b> ${aula.maxAlunos - (aula.reservas?.length || 0)} / ${aula.maxAlunos}</div>
+                          <div><b>Vagas:</b> ${typeof aula.vagas_restantes === 'number' ? aula.vagas_restantes : '-'} / ${typeof aula.vagas_total === 'number' ? aula.vagas_total : '-'}</div>
                           <div class="mt-3">
-                            <button class="btn btn-outline-primary w-100" onclick="${params.onReservar || 'handleReservarAula'}('${aula.id}')">
-                              <i class="bi bi-calendar-plus"></i> Reservar
+                            <button class="btn btn-outline-primary w-100" ${aula.vagas_restantes && aula.vagas_restantes > 0 ? '' : 'disabled'} onclick="${params.onReservar || 'handleReservarAula'}('${aula.id}')">
+                              <i class="bi bi-calendar-plus"></i> ${aula.status === 'REAGENDADA' ? 'Reservar (Reagendada)' : 'Reservar'}
                             </button>
                           </div>
                         </div>
@@ -66,6 +68,14 @@ export class ProfessorPublicoTemplate {
                 </div>
               </div>
             </div>
+            <!-- Botão e container para consultar agendamentos do aluno -->
+            <div class="mt-5 text-center">
+              <button id="btnAbrirConsultaAgendamento" class="btn btn-outline-secondary">
+                <i class="bi bi-search"></i> Consultar meus agendamentos
+              </button>
+            </div>
+            <div id="modalConsultaAgendamentoContainer"></div>
+            <div id="resultadoConsultaAgendamento" class="mt-4"></div>
           </div>
         </div>
       </div>
