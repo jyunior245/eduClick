@@ -1,0 +1,61 @@
+// src/client/services/ProfessorPublicoService.ts
+import { getProfessorPublico, getAulasPublicas, reservarAulaPublica, getPerfilEAulasPublicas } from './api';
+import { mostrarToast } from '../components/Toast';
+
+export class ProfessorPublicoService {
+  static async carregarProfessor(linkUnico: string): Promise<any> {
+    const res = await getProfessorPublico(linkUnico);
+    if (!res.ok) throw new Error('Erro ao carregar dados do professor');
+    return await res.json();
+  }
+
+  static async carregarAulas(linkUnico: string): Promise<any[]> {
+    const res = await getAulasPublicas(linkUnico);
+    if (!res.ok) throw new Error('Erro ao carregar aulas');
+    return await res.json();
+  }
+
+  static async reservarAula(linkUnico: string, aulaId: string, nome: string, telefone: string, email: string, alunoFcmToken?: string | null): Promise<{ success: boolean; error?: string }> {
+    try {
+      const payload = {
+        aulaId: String(aulaId),
+        alunoNome: String(nome || '').trim(),
+        alunoTelefone: String(telefone || '').trim(),
+        alunoEmail: String(email || '').trim(),
+        alunoFcmToken
+      };
+      const res = await reservarAulaPublica(linkUnico, aulaId, payload);
+      if (res.ok) {
+        return { success: true };
+      } else {
+        // Tentar extrair JSON, senão texto
+        let msg = '';
+        try {
+          const err = await res.json();
+          msg = err?.error || '';
+        } catch {
+          try {
+            msg = await res.text();
+          } catch {}
+        }
+        // Log detalhado para depuração no navegador
+        // Ajuda a identificar o motivo exato do 400 quando o toast não mostra
+        console.warn('[ProfessorPublicoService.reservarAula] Falha na reserva', {
+          status: res.status,
+          statusText: res.statusText,
+          mensagem: msg,
+          payload
+        });
+        return { success: false, error: msg || `Erro ${res.status}` };
+      }
+    } catch (error) {
+      return { success: false, error: 'Erro ao conectar com o servidor.' };
+    }
+  }
+
+  static async carregarPerfilEAulas(linkUnico: string): Promise<any> {
+    const res = await getPerfilEAulasPublicas(linkUnico);
+    if (!res.ok) throw new Error('Erro ao carregar dados do professor');
+    return await res.json();
+  }
+}
