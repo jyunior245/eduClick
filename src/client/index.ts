@@ -7,11 +7,13 @@ import { renderAgendamentoPage } from './pages/AgendamentoPage';
 import { renderEditarPerfilProfessorPage } from './pages/EditarPerfilProfessorPage';
 import { logoutProfessor, getPerfilProfessor } from './services/api';
 import { renderHomePage } from './pages/HomePage';
+import { setupWebPush } from './push/setupPush';
 
 import { logger } from './utils/logger';
-import { FirebaseAuthProvider } from 'infrastructure/auth/LocalAuthProvider';
 import { CadastroService } from './services/CadastroService';
+import { FirebaseAuthProvider } from '../infrastructure/auth/LocalAuthProvider';
 import { LoginService } from './services/LoginService';
+
 
 logger.info('EduClick - Cliente iniciado');
 
@@ -50,12 +52,23 @@ async function rotear() {
   // Página inicial
   return renderHomePage(root);
 }
+
 const authProvider = new FirebaseAuthProvider();
 CadastroService.setAuthProvider(authProvider);
 LoginService.setAuthProvider(authProvider);
 
 
 window.addEventListener('popstate', rotear);
-window.addEventListener('DOMContentLoaded', rotear);
+window.addEventListener('DOMContentLoaded', async () => {
+  try {
+    await rotear();
+  } finally {
+    // Non-blocking: tenta registrar push (se configs existirem)
+    setupWebPush().catch(() => {});
+  }
+});
 
 (window as any).logout = logout; 
+
+
+
