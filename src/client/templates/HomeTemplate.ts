@@ -1,3 +1,6 @@
+// Import image so the bundler (Parcel) handles the asset in dev/build
+import simboloUrl from './simbolo.png';
+
 export class HomeTemplate {
   static render(): string {
     return `
@@ -12,7 +15,7 @@ export class HomeTemplate {
             </div>
           </div>
           <div class="col-lg-6 text-center">
-            <img src="https://cdn.pixabay.com/photo/2017/01/31/13/14/online-2025987_1280.png" alt="Educação Online" class="img-fluid rounded shadow" style="max-height: 340px;">
+             <img src="${simboloUrl}" onerror="this.onerror=null;this.src='http://localhost:3000/templates/simbolo.png'" class="img-fluid border-0 bg-transparent" style="max-height: 340px; box-shadow: none; border: 0; background: transparent;">
           </div>
         </div>
         <div class="row mt-5">
