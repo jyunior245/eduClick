@@ -39,6 +39,18 @@ async function handleAgendamentoSubmit(event: Event, professorId: string) {
   if (result.success) {
     form.reset();
     mostrarToast('Agendamento realizado com sucesso!', 'success');
+    // Atualiza automaticamente a página para refletir as mudanças
+    try {
+      const root = document.getElementById('root');
+      if (root) {
+        await renderAgendamentoPage(root, professorId);
+      } else {
+        // Fallback
+        window.location.reload();
+      }
+    } catch {
+      window.location.reload();
+    }
   } else {
     mostrarToast(result.error || 'Erro ao agendar', 'danger');
   }
