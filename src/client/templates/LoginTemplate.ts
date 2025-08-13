@@ -27,8 +27,16 @@ export class LoginTemplate {
                   </div>
                   <button type="submit" class="btn btn-primary w-100">Entrar</button>
                 </form>
+                <div class="mt-3">
+                  <button id="btnGoogleLogin" class="btn btn-outline-danger w-100">
+                    <i class="bi bi-google me-1"></i> Continuar com Google
+                  </button>
+                </div>
                 <div class="mt-3 text-center">
                   <a href="/cadastro">Não tem conta? Cadastre-se</a>
+                </div>
+                <div class="mt-2 text-center">
+                  <a href="#" id="linkForgotPassword">Esqueci minha senha</a>
                 </div>
               </div>
             </div>
@@ -37,4 +45,5 @@ export class LoginTemplate {
       </div>
     `;
   }
-} 
+}
+ 
