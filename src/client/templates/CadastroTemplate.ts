@@ -35,6 +35,11 @@ export class CadastroTemplate {
                   </div>
                   <button type="submit" class="btn btn-primary w-100">Cadastrar</button>
                 </form>
+                <div class="mt-3">
+                  <button id="btnGoogleCadastro" class="btn btn-outline-danger w-100">
+                    <i class="bi bi-google me-1"></i> Cadastrar com Google
+                  </button>
+                </div>
                 <div class="mt-3 text-center">
                   <a href="/login">Já tem conta? Entrar</a>
                 </div>
