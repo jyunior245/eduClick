@@ -118,3 +118,60 @@ Você poderá:
 - Acessar seu painel de controle.
 - Criar ou reservar aulas particulares.
 
+---
+
+## 🔔 Notificações Push (FCM)
+
+### Visão geral
+- O sistema usa Firebase Cloud Messaging (FCM) para enviar notificações de:
+  - Reagendamento de aula.
+  - Lembrete 30 minutos antes do início da aula.
+- O token do aluno (sem cadastro) é coletado na página pública no momento em que ele clica em "Confirmar reserva" e é salvo em `reserva.fcmToken` e também em `usuario.fcmToken` para notificações futuras.
+
+### Configuração necessária (.env)
+Crie/edite o arquivo `.env` na raiz com, no mínimo, a VAPID Public Key do seu projeto Firebase Web:
+
+```
+FIREBASE_VAPID_KEY=SEU_VAPID_PUBLIC_KEY
+```
+
+Outras variáveis de backend (já existentes no projeto) devem estar configuradas para o Firebase Admin (env vars ou service account) e banco de dados.
+
+### Como funciona no frontend
+- O Service Worker de FCM é registrado antes do app em `src/client/index.html` usando Parcel `?url`, garantindo o MIME correto.
+- Em `src/client/services/notifications.ts`:
+  - A função `setupPushAfterLogin()` registra/usa o SW existente e chama `getToken` com o `serviceWorkerRegistration` explícito.
+  - A função `getPublicFcmToken()` é chamada na confirmação de reserva pública para obter o token do dispositivo do aluno.
+  - Há fallbacks para obter a VAPID a partir de `.env`, `window.__VAPID_KEY`, `<meta name="vapid-key">` e `localStorage['FIREBASE_VAPID_KEY']` (com prompt opcional em dev).
+
+### Requisitos do navegador
+- Permitir notificações para `http://localhost:1234` (ou https em produção).
+- Origem segura: usar `https` ou `http://localhost` (não funciona em `file://`).
+
+### Solução de problemas FCM
+- Erro "unsupported MIME type (text/html)" ao registrar SW:
+  - Garanta hard refresh (Ctrl+Shift+R). O SW é registrado via `?url` em `index.html`.
+  - Abra `http://localhost:1234/firebase-messaging-sw.js?url` (a URL resolvida no log) e confirme que retorna JavaScript.
+- VAPID ausente:
+  - Configure `FIREBASE_VAPID_KEY` em `.env` e reinicie `npm start`.
+  - Em dev, você também pode definir no console: `localStorage.setItem('FIREBASE_VAPID_KEY', 'SUA_CHAVE')`.
+
+---
+
+## 🔄 Atualização automática de telas
+- O dashboard do professor atualiza automaticamente quando há novas reservas por:
+  - Push `AULAS_UPDATED` (quando disponível).
+  - BroadcastChannel entre abas (reserva pública envia e o dashboard escuta).
+  - Atualização ao focar a aba do dashboard.
+  - Atualização periódica leve (15s) como fallback.
+
+---
+
+## 🧪 Fluxos principais
+- Reserva pública:
+  - Aluno confirma → cliente obtém token FCM → envia ao backend → backend salva → dashboard atualiza automático.
+- Reagendar aula:
+  - Backend usa `NotificationService.notificarAulaReagendada` para notificar todos os alunos com reserva ativa (usa `usuario.fcmToken` e `reserva.fcmToken`).
+- Lembrete 30 min antes:
+  - Agendador simples no servidor chama `NotificationService.enviarLembretesAulas()` a cada 1 minuto.
+
