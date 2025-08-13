@@ -6,7 +6,8 @@ import { AulaDetailModal } from '../components/modals/AulaDetailModal';
 import { PerformanceOptimizer } from '../utils/perfomance';
 import { AulaCard } from '../components/ui/AulaCard';
 import { logger } from '../utils/logger';
-import { API_BASE } from '../services/api';
+import { API_BASE, getAula, reagendarAulaAPI } from '../services/api';
+import { setupWebPush } from '../push/setupPush';
 
 export class DashboardProfessorPage {
   private static currentAulaId: string | null = null;
@@ -23,10 +24,14 @@ export class DashboardProfessorPage {
   static async init(): Promise<void> {
     // Aplicar otimizações de performance
     PerformanceOptimizer.applyOptimizations();
-    
     this.setupEventListeners();
     this.setupGlobalFunctions();
     this.setupCalendar();
+    // Garantir que os modais estejam anexados ao <body> (evita problemas de z-index/backdrop)
+    this.ensureModalsInBody();
+    await this.refreshDashboard();
+    // Tentar registrar push novamente após dashboard carregar (garante sessão válida)
+    try { await setupWebPush(); } catch {}
   }
 
   private static setupEventListeners(): void {
@@ -92,8 +97,6 @@ export class DashboardProfessorPage {
     // Funções globais para serem chamadas pelos cards
     (window as any).editarAula = this.handleEditarAula.bind(this);
     (window as any).excluirAula = this.handleExcluirAula.bind(this);
-    // Atualizar para passar aulaId no cancelarReserva
-    (window as any).cancelarReserva = this.handleCancelarReserva.bind(this);
     (window as any).navegarMes = this.handleNavegarMes.bind(this);
   }
 
@@ -110,6 +113,26 @@ export class DashboardProfessorPage {
     document.addEventListener('aulaCalendarClick', (event: any) => {
       this.handleCalendarEventClick(event.detail);
     });
+
+    // Inicialização imediata se o container já estiver no DOM
+    // (Melhora UX: permite clique em eventos sem precisar alternar a aba)
+    setTimeout(async () => {
+      const container = document.getElementById('calendario-container');
+      if (container) {
+        try {
+          const data = await DashboardService.loadDashboardData();
+          CalendarService.initializeCalendar('calendario-container', data.aulas);
+
+          // Inicializar tooltips do Bootstrap
+          const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+          tooltipTriggerList.map(function (tooltipTriggerEl: any) {
+            return new (window as any).bootstrap.Tooltip(tooltipTriggerEl);
+          });
+        } catch (e) {
+          console.error('Falha na inicialização imediata do calendário:', e);
+        }
+      }
+    }, 150);
   }
 
   private static async initializeCalendar(): Promise<void> {
@@ -134,27 +157,36 @@ export class DashboardProfessorPage {
 
   private static async handleCalendarEventClick(detail: any): Promise<void> {
     try {
-      const { aulaId } = detail;
-      
-      // Buscar dados da aula
-      const response = await fetch(`/api/aulas/${aulaId}`, { credentials: 'include' });
-      if (response.ok) {
-        const aula = await response.json();
-        
-        // Atualizar modal de detalhes
-        const modalContainer = document.getElementById('modalAulaDetail');
-        if (modalContainer) {
-          modalContainer.innerHTML = AulaDetailModal.render(aula);
-          
-          // Configurar botões do modal
-          this.setupDetailModalButtons(aulaId);
-          
-          // Mostrar modal
-          const modal = new (window as any).bootstrap.Modal(modalContainer);
-          modal.show();
-        }
-      } else {
-        mostrarToast('Erro ao carregar detalhes da aula.', 'danger');
+      const { aulaId, event } = detail;
+      const ext = event.extendedProps || {};
+      const startIso: string = event.start ? new Date(event.start).toISOString() : new Date().toISOString();
+      const duracaoMin = event.end && event.start ? Math.max(0, Math.round((new Date(event.end).getTime() - new Date(event.start).getTime()) / 60000)) : 0;
+
+      const aulaDetail = {
+        id: String(aulaId),
+        titulo: event.title || 'Aula',
+        conteudo: ext.conteudo || '',
+        dataHora: startIso,
+        duracao: duracaoMin,
+        valor: typeof ext.valor === 'number' ? ext.valor : 0,
+        maxAlunos: typeof ext.maxAlunos === 'number' ? ext.maxAlunos : (Array.isArray(ext.reservas) ? ext.reservas.length : 0),
+        status: ext.status || 'disponivel',
+        observacoes: ext.observacoes || '',
+        reservas: Array.isArray(ext.reservas) ? ext.reservas : []
+      } as any;
+
+      // Atualizar conteúdo do modal de detalhes
+      const modalEl = document.getElementById('modalAulaDetail');
+      const modalBody = modalEl ? modalEl.querySelector('.modal-body') as HTMLElement : null;
+      if (modalBody) {
+        modalBody.innerHTML = AulaDetailModal.renderContent(aulaDetail);
+
+        // Configurar botões do modal
+        this.setupDetailModalButtons(String(aulaId));
+
+        // Mostrar modal
+        const modal = new (window as any).bootstrap.Modal(modalEl);
+        modal.show();
       }
     } catch (error) {
       console.error('Erro ao abrir detalhes da aula:', error);
@@ -187,6 +219,59 @@ export class DashboardProfessorPage {
           modalDetail.hide();
         }
       });
+    }
+
+    // Botão Reagendar (garante footer e cria se não existir)
+    const modalEl = document.getElementById('modalAulaDetail')!;
+    let footer = modalEl ? modalEl.querySelector('.modal-footer') as HTMLElement | null : null;
+    if (!footer && modalEl) {
+      const modalContent = modalEl.querySelector('.modal-content');
+      if (modalContent) {
+        footer = document.createElement('div');
+        footer.className = 'modal-footer';
+        modalContent.appendChild(footer);
+      }
+    }
+    let btnReagendar = document.getElementById('btn-reagendar-aula') as HTMLButtonElement | null;
+    if (!btnReagendar && footer) {
+      btnReagendar = document.createElement('button');
+      btnReagendar.id = 'btn-reagendar-aula';
+      btnReagendar.type = 'button';
+      btnReagendar.className = 'btn btn-warning me-2';
+      btnReagendar.textContent = 'Reagendar';
+      footer.insertBefore(btnReagendar, footer.firstChild);
+    }
+    if (btnReagendar) {
+      btnReagendar.onclick = async () => {
+        try {
+          // Lê o valor do input datetime-local (opcional)
+          const inputEl = document.getElementById('input-nova-data-hora') as HTMLInputElement | null;
+          let novaIso: string | undefined = undefined;
+          if (inputEl && inputEl.value) {
+            // datetime-local retorna em formato local (e.g. 2025-08-20T15:00), converter para ISO
+            const local = inputEl.value;
+            const dt = new Date(local);
+            if (isNaN(dt.getTime())) {
+              mostrarToast('Data/hora inválida.', 'danger');
+              return;
+            }
+            novaIso = dt.toISOString();
+          }
+          const resp = await reagendarAulaAPI(aulaId, novaIso);
+          if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            mostrarToast(err.error || 'Erro ao reagendar aula.', 'danger');
+            return;
+          }
+          mostrarToast('Aula reagendada com sucesso.', 'success');
+          // Fechar modal e atualizar dashboard
+          const modalDetail = (window as any).bootstrap.Modal.getInstance(document.getElementById('modalAulaDetail'));
+          if (modalDetail) modalDetail.hide();
+          await this.refreshDashboard();
+        } catch (e) {
+          mostrarToast('Erro ao reagendar aula.', 'danger');
+        }
+      };
     }
   }
 
@@ -234,7 +319,7 @@ export class DashboardProfessorPage {
 
   private static async handleEditarAula(aulaId: string): Promise<void> {
     try {
-      const response = await fetch(`${API_BASE}/aulas/${aulaId}`, { credentials: 'include' });
+      const response = await getAula(aulaId);
       if (response.ok) {
         const aula = await response.json();
         this.populateEditForm(aula);
@@ -303,7 +388,11 @@ export class DashboardProfessorPage {
     if (success) {
       mostrarToast('Aula excluída com sucesso!', 'success');
       modal.hide();
-      await this.refreshDashboard();
+      try {
+        await this.refreshDashboard();
+      } catch {
+        window.location.reload();
+      }
     } else {
       mostrarToast('Erro ao excluir aula.', 'danger');
     }
@@ -313,34 +402,13 @@ export class DashboardProfessorPage {
     this.showExcluirAulaModal(aulaId);
   }
 
-  // Atualizar assinatura para receber aulaId
-  private static async handleCancelarReserva(aulaId: string, nome: string, telefone: string): Promise<void> {
-    if (confirm(`Tem certeza que deseja cancelar a reserva de ${nome}?`)) {
-      try {
-        const response = await fetch(`${API_BASE}/aulas/${aulaId}/cancelar-reserva`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ nome, telefone })
-        });
 
-        if (response.ok) {
-          mostrarToast('Reserva cancelada com sucesso!', 'success');
-          await this.refreshDashboard();
-        } else {
-          const err = await response.json();
-          mostrarToast('Erro ao cancelar reserva: ' + (err.error || 'Erro desconhecido'), 'danger');
-        }
-      } catch (error) {
-        mostrarToast('Erro ao conectar com o servidor.', 'danger');
-      }
-    }
-  }
 
   private static handleNavegarMes(direction: number): void {
-    // Implementação do calendário será adicionada posteriormente
+    // Re-renderiza o calendário ao navegar entre meses
     logger.debug('Navegar mês:', direction);
+    // Por simplicidade, recarregamos os dados e reinicializamos
+    this.initializeCalendar();
   }
 
   private static async handleSubmitNovaAula(event: Event): Promise<void> {
@@ -357,9 +425,13 @@ export class DashboardProfessorPage {
       const success = await DashboardService.criarAula(formData);
       if (success) {
         const modal = (window as any).bootstrap.Modal.getInstance(document.getElementById('modalNovaAula'));
-        modal.hide();
+        if (modal) modal.hide();
         this.resetForms();
-        await this.refreshDashboard();
+        try {
+          await this.refreshDashboard();
+        } catch {
+          window.location.reload();
+        }
       }
     } catch (error: any) {
       mostrarToast(error?.message || 'Erro ao criar aula', 'danger');
@@ -377,25 +449,17 @@ export class DashboardProfessorPage {
       return;
     }
     try {
-      const payload = {
-        ...formData,
-        valor: parseFloat(formData.valor.toString()),
-        duracao: parseInt(formData.duracao.toString(), 10),
-        maxAlunos: parseInt(formData.maxAlunos.toString(), 10),
-        dataHora: formData.dataHora.includes('T') ? formData.dataHora : new Date(formData.dataHora).toISOString(),
-        status: formData.status || 'disponivel',
-      };
-      const success = await DashboardService.editarAula(this.currentAulaId, payload);
+      const success = await DashboardService.editarAula(this.currentAulaId, formData);
       if (success) {
         const modalElement = document.getElementById('modalEditarAula');
         if (modalElement) {
           const modal = (window as any).bootstrap.Modal.getInstance(modalElement);
-          if (modal) {
-            modal.hide();
-          }
+          if (modal) modal.hide();
         }
         this.resetForms();
-        await this.refreshDashboard();
+        // Feedback e recarregamento automático para refletir as alterações
+        mostrarToast('Aula editada com sucesso!', 'success');
+        setTimeout(() => window.location.reload(), 600);
       }
     } catch (error: any) {
       if (error?.response?.status === 401) {
@@ -419,11 +483,22 @@ export class DashboardProfessorPage {
       conteudo: formData.get('conteudo') as string,
       valor: parseFloat(formData.get('valor') as string),
       duracao: parseInt(formData.get('duracao') as string, 10),
-      maxAlunos: parseInt(formData.get('maxAlunos') as string, 10),
+  maxAlunos: Math.max(1, parseInt(formData.get('maxAlunos') as string ?? '1', 10)),
       dataHora: dataHora,
       status: (formData.get('status') as string) || 'disponivel',
       observacoes: formData.get('observacoes') as string || undefined
     };
+  }
+
+  // Formata Date para o padrão aceito por input[type="datetime-local"] considerando o horário local
+  private static toLocalDatetimeInputValue(date: Date): string {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const y = date.getFullYear();
+    const m = pad(date.getMonth() + 1);
+    const d = pad(date.getDate());
+    const hh = pad(date.getHours());
+    const mm = pad(date.getMinutes());
+    return `${y}-${m}-${d}T${hh}:${mm}`;
   }
 
   private static populateEditForm(aula: any): void {
@@ -434,13 +509,32 @@ export class DashboardProfessorPage {
       (form.querySelector('[name="valor"]') as HTMLInputElement).value = aula.valor;
       (form.querySelector('[name="duracao"]') as HTMLInputElement).value = aula.duracao;
       (form.querySelector('[name="maxAlunos"]') as HTMLInputElement).value = aula.maxAlunos;
-      // Formatar a data para o input datetime-local
-      const dataHora = new Date(aula.dataHora);
-      const dataFormatada = dataHora.toISOString().slice(0, 16); // Formato YYYY-MM-DDTHH:MM
-      (form.querySelector('[name="dataHora"]') as HTMLInputElement).value = dataFormatada;
+      // Só atualizar se o campo estiver vazio ou diferente
+      const inputDataHora = form.querySelector('[name="dataHora"]') as HTMLInputElement;
+      // Corrigir: garantir valor válido para datetime-local
+      let localVal = '';
+      if (aula.dataHora) {
+        const dt = new Date(aula.dataHora);
+        if (!isNaN(dt.getTime())) {
+          localVal = this.toLocalDatetimeInputValue(dt);
+        }
+      }
+      inputDataHora.value = localVal;
+      inputDataHora.setAttribute('data-original', localVal); // Para comparar depois
       (form.querySelector('[name="status"]') as HTMLSelectElement).value = aula.status;
       (form.querySelector('[name="observacoes"]') as HTMLTextAreaElement).value = aula.observacoes || '';
     }
+  }
+
+  // Move os modais para o <body> caso tenham sido renderizados dentro de containers com contexto/z-index menores
+  private static ensureModalsInBody(): void {
+    const ids = ['modalNovaAula', 'modalEditarAula', 'modalAulaDetail'];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.parentElement !== document.body) {
+        document.body.appendChild(el);
+      }
+    });
   }
 
   private static resetForms(): void {
@@ -477,6 +571,56 @@ export class DashboardProfessorPage {
                 </div>
               `;
           aulasContainer.innerHTML = aulasHtml;
+        }
+
+        // Atualizar a aba de Agendamentos, incluindo Aulas Reagendadas
+        const agTab = contentContainer.querySelector('#agendamentos');
+        if (agTab) {
+          const cardBodies = agTab.querySelectorAll('.card .card-body');
+          // Pela estrutura do template: [0] Agendamentos Realizados, [1] Aulas Reagendadas
+          if (cardBodies.length >= 2) {
+            const aulasReagendadas = data.aulas.filter((a: any) => (a.status || '').toLowerCase() === 'reagendada');
+            const aulasNormais = data.aulas.filter((a: any) => (a.status || '').toLowerCase() !== 'reagendada');
+
+            const renderReserva = (reserva: any) => {
+              const statusBadge = (reserva.status === 'cancelado')
+                ? '<span class="badge bg-danger ms-2">Cancelado</span>'
+                : '<span class="badge bg-success ms-2">Agendado</span>';
+              const pagamentoBadge = reserva.pagamentoEfetivado ? '<span class="badge bg-info ms-2">Pagamento Efetivado</span>' : '';
+              return `<li class="list-group-item d-flex justify-content-between align-items-center">
+                <span><b>${reserva.nome}</b> <span class="text-muted">${reserva.email || ''}</span><br><span class="text-muted">${reserva.telefone || ''}</span></span>
+                <span>${statusBadge} ${pagamentoBadge}</span>
+              </li>`;
+            };
+
+            const renderAulaAgendamento = (aula: any) => {
+              const badgeClass = ((aula.status || '').toLowerCase() === 'reagendada') ? 'warning text-dark' : 'primary';
+              const titulo = aula.titulo || 'Aula';
+              let dataHoraStr = '';
+              try { const d = new Date(aula.dataHora); dataHoraStr = isNaN(d.getTime()) ? String(aula.dataHora || '-') : d.toLocaleString(); } catch { dataHoraStr = String(aula.dataHora || '-'); }
+              const reservasHtml = (Array.isArray(aula.reservas) && aula.reservas.length > 0)
+                ? aula.reservas.map((r: any) => renderReserva(r)).join('')
+                : '<li class="list-group-item text-muted">Nenhuma reserva</li>';
+              return `
+                <div class="mb-4">
+                  <div class="fw-bold mb-2">${titulo} <span class="badge bg-${badgeClass} ms-2">${(aula.status || '').charAt(0).toUpperCase() + (aula.status || '').slice(1)}</span></div>
+                  <div class="mb-1 text-muted"><b>Data/Hora:</b> ${dataHoraStr}</div>
+                  <div class="mb-2"><b>Reservas:</b></div>
+                  <ul class="list-group mb-2">${reservasHtml}</ul>
+                </div>
+              `;
+            };
+
+            // Preenche Agendamentos Realizados
+            cardBodies[0].innerHTML = (aulasNormais.length === 0)
+              ? '<div class="text-muted">Nenhum agendamento realizado.</div>'
+              : aulasNormais.map(renderAulaAgendamento).join('');
+
+            // Preenche Aulas Reagendadas
+            cardBodies[1].innerHTML = (aulasReagendadas.length === 0)
+              ? '<div class="text-muted">Nenhuma aula reagendada.</div>'
+              : aulasReagendadas.map(renderAulaAgendamento).join('');
+          }
         }
       }
       
@@ -542,4 +686,4 @@ export async function renderDashboardProfessorPage(root: HTMLElement): Promise<v
       </div>
     `;
   }
-} 
+}
